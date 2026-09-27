@@ -32,11 +32,7 @@ from steganography.jpeg_test import (
     save_as_jpeg
 )
 
-
-# =========================================================
-# KONFIGURASI APLIKASI
-# =========================================================
-
+# Konfigurasi Aplikasi
 app = Flask(__name__)
 
 UPLOAD_FOLDER = "uploads"
@@ -47,16 +43,11 @@ ALLOWED_EXTENSIONS = {"png", "bmp"}
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 app.config["OUTPUT_FOLDER"] = OUTPUT_FOLDER
 
-
-# Membuat folder jika belum tersedia
+# Membuat folder untuk menyimpan file upload
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
-
-# =========================================================
-# VALIDASI FILE
-# =========================================================
-
+# Fungsi validasi file
 def allowed_file(filename):
     return (
         "." in filename
@@ -64,38 +55,24 @@ def allowed_file(filename):
         in ALLOWED_EXTENSIONS
     )
 
-
-# =========================================================
-# HALAMAN UTAMA
-# =========================================================
-
+# Section utama
 @app.route("/")
 def index():
     return render_template("index.html")
 
-
-# =========================================================
-# ENCODE
-# =========================================================
-
+# Encode
 @app.route("/encode", methods=["GET", "POST"])
 def encode():
 
     if request.method == "GET":
         return render_template("encode.html")
 
-    # -----------------------------------------------------
-    # MENGAMBIL DATA DARI FORM
-    # -----------------------------------------------------
-
+    # Mengambil input dari pengguna
     image_file = request.files.get("image")
     message = request.form.get("message", "")
     stego_key = request.form.get("stego_key", "")
 
-    # -----------------------------------------------------
-    # VALIDASI FILE
-    # -----------------------------------------------------
-
+    # Validasi gambar yang diinput pengguna (PNG atau BMP)
     if not image_file or image_file.filename == "":
         return render_template(
             "encode.html",
@@ -108,20 +85,14 @@ def encode():
             error="Format gambar harus PNG atau BMP."
         )
 
-    # -----------------------------------------------------
-    # VALIDASI PESAN
-    # -----------------------------------------------------
-
+    # Validasi pesan yang diinput pengguna
     if not message.strip():
         return render_template(
             "encode.html",
             error="Pesan tidak boleh kosong."
         )
 
-    # -----------------------------------------------------
-    # VALIDASI STEGO-KEY
-    # -----------------------------------------------------
-
+    # Validasi stego Key yang diinput pengguna
     if not stego_key:
         return render_template(
             "encode.html",
@@ -130,10 +101,7 @@ def encode():
 
     try:
 
-        # -------------------------------------------------
-        # SIMPAN COVER IMAGE
-        # -------------------------------------------------
-
+        # Simpan cover image
         filename = secure_filename(
             image_file.filename
         )
@@ -145,9 +113,7 @@ def encode():
 
         image_file.save(input_path)
 
-        # -------------------------------------------------
-        # BUKA COVER IMAGE & SIMPAN ALPHA
-        # -------------------------------------------------
+        # Buka cover image & hasil alpha
         img = Image.open(input_path)
         has_alpha = False
         alpha_channel = None
@@ -165,27 +131,18 @@ def encode():
         else:
             original_image = img.convert("RGB")
 
-        # -------------------------------------------------
-        # HITUNG KAPASITAS
-        # -------------------------------------------------
-
+        # Hitung kapasitas maksimum data yang bisa disisipkan ke dalam cover image
         capacity = get_capacity(
             original_image
         )
 
-        # -------------------------------------------------
-        # ENKRIPSI PESAN DENGAN AES-GCM
-        # -------------------------------------------------
-
+        # Enkripsi pesan menggunakan AES-GCM
         encrypted_message = encrypt_message(
             message,
             stego_key
         )
 
-        # -------------------------------------------------
-        # CEK KAPASITAS
-        # -------------------------------------------------
-
+        # Cek ukuran pesan terenkripsi
         if len(encrypted_message) > capacity:
 
             return render_template(
@@ -199,27 +156,21 @@ def encode():
                 )
             )
 
-        # -------------------------------------------------
-        # SISIPKAN DATA DENGAN LSB + PRNG
-        # -------------------------------------------------
+        # Sisipkan data dengan LSB + PRNG
         stego_image = encode_data(
             original_image,
             encrypted_message,
             stego_key
         )
 
-        # -------------------------------------------------
-        # KEMBALIKAN TRANSPARANSI (JIKA ADA)
-        # -------------------------------------------------
+        # Kembalikan trasnparansi (Jika ada)
         final_output_image = stego_image
         if has_alpha and alpha_channel:
             # Pisahkan RGB yang sudah disisipi pesan, gabung kembali dengan Alpha
             r, g, b = stego_image.split()
             final_output_image = Image.merge("RGBA", (r, g, b, alpha_channel))
 
-        # -------------------------------------------------
-        # NAMA FILE STEGO
-        # -------------------------------------------------
+        # Nama file stego image
         output_filename = (
             "stego_"
             + os.path.splitext(filename)[0]
@@ -230,18 +181,13 @@ def encode():
             output_filename
         )
 
-        # -------------------------------------------------
-        # SIMPAN STEGO IMAGE SEBAGAI PNG (TRANSPARAN)
-        # -------------------------------------------------
+        # Simpan stego image sebagai PNG (Transparan)
         final_output_image.save(
             output_path,
             format="PNG"
         )
 
-        # -------------------------------------------------
-        # ENHANCED LSB
-        # -------------------------------------------------
-
+        # Enhanced LSB
         lsb_image = enhance_lsb_plane(
             stego_image
         )
@@ -262,51 +208,30 @@ def encode():
             format="PNG"
         )
 
-        # -------------------------------------------------
-        # HITUNG MSE
-        # -------------------------------------------------
-
+        # Hitung MSE
         mse = calculate_mse(
             original_image,
             stego_image
         )
 
-        # -------------------------------------------------
-        # HITUNG PSNR
-        # -------------------------------------------------
-
+        # Hitung PSNR
         psnr = calculate_psnr(
             original_image,
             stego_image
         )
 
-        # -------------------------------------------------
-        # HITUNG HISTOGRAM COVER
-        # -------------------------------------------------
-
+        # Hitung histogram cover image
         cover_histogram = calculate_histogram(
             original_image
         )
 
-        # -------------------------------------------------
-        # HITUNG HISTOGRAM STEGO
-        # -------------------------------------------------
-
+        # Hitung histogram stego image
         stego_histogram = calculate_histogram(
             stego_image
         )
 
-        # =================================================
-        # JPEG RE-SAVE TEST
-        # =================================================
-        #
-        # PENTING:
-        # Di tahap ini JPEG hanya dibuat.
-        # TIDAK ADA proses decode.
-        #
-        # Decode JPEG baru dilakukan setelah user
-        # memasukkan stego-key di halaman encode.html.
-        # =================================================
+        # JPEG Re-Save Test
+        # Catatan: Di tahap ini, kita hanya menyimpan stego image sebagai JPEG untuk pengujian.
 
         jpeg_filename = (
             "jpeg_test_"
@@ -319,20 +244,14 @@ def encode():
             jpeg_filename
         )
 
-        # -------------------------------------------------
-        # SIMPAN STEGO IMAGE SEBAGAI JPEG
-        # -------------------------------------------------
-
+        # Simpan stego image sebagai JPEG (untuk pengujian)     
         save_as_jpeg(
             stego_image,
             jpeg_path,
             quality=75
         )
 
-        # -------------------------------------------------
-        # TAMPILKAN HASIL ENCODE
-        # -------------------------------------------------
-
+        # Tampilkan hasil encode ke halaman encode.html
         return render_template(
             "encode.html",
 
@@ -362,16 +281,11 @@ def encode():
 
             stego_histogram=stego_histogram,
 
-            # -------------------------------------------------
-            # DATA JPEG TEST
-            # -------------------------------------------------
-
+            # Data JPEG test untuk pengujian decode JPEG
             jpeg_filename=jpeg_filename,
 
-            # -------------------------------------------------
-            # PESAN ASLI
+            # Pesan asli yang dimasukkan pengguna
             # Digunakan untuk membandingkan hasil decode JPEG
-            # -------------------------------------------------
 
             original_message=message
 
@@ -386,18 +300,11 @@ def encode():
             )
         )
 
-
-# =========================================================
-# UJI DECODE JPEG
-# =========================================================
-
+# Uji decode JPEG
 @app.route("/jpeg-test", methods=["POST"])
 def jpeg_test():
 
-    # -----------------------------------------------------
-    # AMBIL DATA DARI FORM
-    # -----------------------------------------------------
-
+    # Ambil data dari form
     jpeg_filename = request.form.get(
         "jpeg_filename",
         ""
@@ -413,10 +320,7 @@ def jpeg_test():
         ""
     )
 
-    # -----------------------------------------------------
-    # VALIDASI STEGO-KEY
-    # -----------------------------------------------------
-
+    # VAalidasi Stego-Key
     if not stego_key:
 
         return render_template(
@@ -435,10 +339,7 @@ def jpeg_test():
             error="Stego-key tidak boleh kosong."
         )
 
-    # -----------------------------------------------------
-    # VALIDASI FILE JPEG
-    # -----------------------------------------------------
-
+    # Validasi file JPEG
     if not jpeg_filename:
 
         return render_template(
@@ -460,19 +361,13 @@ def jpeg_test():
             )
         )
 
-    # -----------------------------------------------------
-    # LOKASI FILE JPEG
-    # -----------------------------------------------------
-
+    # Lokasi file JPEG
     jpeg_path = os.path.join(
         app.config["OUTPUT_FOLDER"],
         jpeg_filename
     )
 
-    # -----------------------------------------------------
-    # CEK FILE
-    # -----------------------------------------------------
-
+    # Cek file
     if not os.path.exists(jpeg_path):
 
         return render_template(
@@ -495,36 +390,24 @@ def jpeg_test():
 
     try:
 
-        # -------------------------------------------------
-        # BUKA JPEG
-        # -------------------------------------------------
-
+        # Buka JPEG
         jpeg_image = Image.open(
             jpeg_path
         ).convert("RGB")
 
-        # -------------------------------------------------
-        # EXTRACT DATA DARI JPEG
-        # -------------------------------------------------
-
+        # Extract data dari JPEG
         encrypted_message = decode_data(
             jpeg_image,
             stego_key
         )
 
-        # -------------------------------------------------
-        # DEKRIPSI PESAN
-        # -------------------------------------------------
-
+        # Deskripsi pesan terenkripsi dengan AES-GCM
         extracted_message = decrypt_message(
             encrypted_message,
             stego_key
         )
-
-        # -------------------------------------------------
-        # BANDINGKAN DENGAN PESAN ASLI
-        # -------------------------------------------------
-
+     
+        # Bandingkan dengan pesan asli
         if extracted_message == original_message:
 
             return render_template(
@@ -567,10 +450,7 @@ def jpeg_test():
 
     except Exception as e:
 
-        # -------------------------------------------------
-        # DECODE GAGAL
-        # -------------------------------------------------
-
+        # Decode gagal
         return render_template(
             "jpeg_test.html",
 
@@ -589,21 +469,14 @@ def jpeg_test():
             )
         )
 
-
-# =========================================================
-# DECODE NORMAL
-# =========================================================
-
+# Decode Normal
 @app.route("/decode", methods=["GET", "POST"])
 def decode():
 
     if request.method == "GET":
         return render_template("decode.html")
 
-    # -----------------------------------------------------
-    # MENGAMBIL DATA DARI FORM
-    # -----------------------------------------------------
-
+    # Mengambil data dari form
     image_file = request.files.get("image")
 
     stego_key = request.form.get(
@@ -611,10 +484,7 @@ def decode():
         ""
     )
 
-    # -----------------------------------------------------
-    # VALIDASI FILE
-    # -----------------------------------------------------
-
+    # Validasi file stego image
     if not image_file or image_file.filename == "":
 
         return render_template(
@@ -636,10 +506,7 @@ def decode():
             )
         )
 
-    # -----------------------------------------------------
-    # VALIDASI STEGO-KEY
-    # -----------------------------------------------------
-
+    # Validasi stego-key
     if not stego_key:
 
         return render_template(
@@ -652,10 +519,7 @@ def decode():
 
     try:
 
-        # -------------------------------------------------
-        # SIMPAN STEGO IMAGE
-        # -------------------------------------------------
-
+        # Simpan stego image
         filename = secure_filename(
             image_file.filename
         )
@@ -666,37 +530,25 @@ def decode():
         )
 
         image_file.save(input_path)
-
-        # -------------------------------------------------
-        # BUKA STEGO IMAGE
-        # -------------------------------------------------
-
+       
+        # Buka stego image
         stego_image = Image.open(
             input_path
         ).convert("RGB")
 
-        # -------------------------------------------------
-        # EXTRACT DATA DENGAN LSB + PRNG
-        # -------------------------------------------------
-
+        # Extract data dengan LSB + PRNG
         encrypted_message = decode_data(
             stego_image,
             stego_key
         )
 
-        # -------------------------------------------------
-        # DEKRIPSI DENGAN AES-GCM
-        # -------------------------------------------------
-
+        # Deskripsi dengan AES-GCM
         message = decrypt_message(
             encrypted_message,
             stego_key
         )
 
-        # -------------------------------------------------
-        # TAMPILKAN HASIL DECODE
-        # -------------------------------------------------
-
+        # tampilkan hasil decode
         return render_template(
             "decode.html",
 
@@ -718,11 +570,7 @@ def decode():
             )
         )
 
-
-# =========================================================
-# MENAMPILKAN OUTPUT IMAGE
-# =========================================================
-
+# Menampilkan output image
 @app.route("/outputs/<filename>")
 def output_file(filename):
 
@@ -731,11 +579,7 @@ def output_file(filename):
         filename
     )
 
-
-# =========================================================
-# MENAMPILKAN COVER IMAGE
-# =========================================================
-
+# Menampilkan cover image
 @app.route("/uploads/<filename>")
 def upload_file(filename):
 
@@ -744,11 +588,7 @@ def upload_file(filename):
         filename
     )
 
-
-# =========================================================
-# MENJALANKAN FLASK
-# =========================================================
-
+# Menjalankan Flask
 if __name__ == "__main__":
 
     app.run(
