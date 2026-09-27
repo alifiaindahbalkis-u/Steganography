@@ -3,46 +3,695 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Secure Image Steganography</title>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <meta name="description"
+          content="StegoLab - Aplikasi steganografi untuk menyisipkan dan mengekstrak pesan rahasia dari gambar.">
+
+    <title>StegoLab | Image Steganography</title>
+
+    <!-- Google Font -->
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <!-- CSS -->
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
 </head>
+
 
 <body>
 
-    <h1>Secure Image Steganography</h1>
+    <!-- =========================
+         NAVBAR
+    ========================== -->
 
-    <p>
-        Aplikasi penyembunyian pesan rahasia menggunakan
-        LSB dan AES-GCM.
-    </p>
+    <header class="navbar">
 
-    <hr>
+        <div class="nav-container">
 
-    <h2>Encode</h2>
+            <a href="/" class="brand">
 
-    <p>
-        Menyembunyikan pesan rahasia ke dalam gambar.
-    </p>
+                <div class="brand-icon">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
 
-    <a href="/encode">
-        <button>
-            Encode Message
-        </button>
-    </a>
+                <span>Stego<span class="brand-highlight">Lab</span></span>
+
+            </a>
 
 
-    <h2>Decode</h2>
+            <nav class="nav-links">
 
-    <p>
-        Mengambil pesan rahasia dari gambar stego.
-    </p>
+                <a href="/" class="active">
+                    Home
+                </a>
 
-    <a href="/decode">
-        <button>
-            Decode Message
-        </button>
-    </a>
+                <a href="/encode">
+                    Encode
+                </a>
+
+                <a href="/decode">
+                    Decode
+                </a>
+
+            </nav>
+
+
+            <a href="/encode" class="nav-button">
+                Get Started
+                <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+        </div>
+
+    </header>
+
+
+    <!-- =========================
+         HERO SECTION
+    ========================== -->
+
+    <main>
+
+        <section class="hero">
+
+            <div class="hero-container">
+
+                <!-- LEFT -->
+
+                <div class="hero-content">
+
+                    <div class="hero-badge">
+
+                        <span class="badge-dot"></span>
+
+                        Image Steganography
+
+                    </div>
+
+
+                    <h1>
+                        Hide Your Message.
+                        <span>Keep It Secret.</span>
+                    </h1>
+
+
+                    <p class="hero-description">
+
+                        StegoLab adalah aplikasi steganografi yang memungkinkan
+                        kamu menyisipkan pesan rahasia ke dalam gambar secara
+                        aman menggunakan enkripsi dan teknik LSB.
+
+                    </p>
+
+
+                    <div class="hero-buttons">
+
+                        <a href="/encode"
+                           class="btn btn-primary">
+
+                            <i class="fa-solid fa-lock"></i>
+
+                            Start Encoding
+
+                        </a>
+
+
+                        <a href="/decode"
+                           class="btn btn-secondary">
+
+                            <i class="fa-solid fa-unlock"></i>
+
+                            Extract Message
+
+                        </a>
+
+                    </div>
+
+
+                    <div class="hero-info">
+
+                        <div class="info-item">
+
+                            <i class="fa-solid fa-image"></i>
+
+                            <div>
+                                <strong>PNG & BMP</strong>
+                                <span>Supported format</span>
+                            </div>
+
+                        </div>
+
+
+                        <div class="info-item">
+
+                            <i class="fa-solid fa-shield-halved"></i>
+
+                            <div>
+                                <strong>AES-GCM</strong>
+                                <span>Message encryption</span>
+                            </div>
+
+                        </div>
+
+
+                        <div class="info-item">
+
+                            <i class="fa-solid fa-code"></i>
+
+                            <div>
+                                <strong>LSB</strong>
+                                <span>Data embedding</span>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- RIGHT -->
+
+                <div class="hero-visual">
+
+                    <div class="visual-glow"></div>
+
+
+                    <div class="image-card-main">
+
+                        <div class="window-header">
+
+                            <div class="window-dots">
+
+                                <span></span>
+                                <span></span>
+                                <span></span>
+
+                            </div>
+
+                            <span class="window-title">
+                                StegoLab
+                            </span>
+
+                        </div>
+
+
+                        <div class="visual-content">
+
+                            <div class="visual-icon">
+
+                                <i class="fa-solid fa-image"></i>
+
+                                <div class="scan-line"></div>
+
+                            </div>
+
+
+                            <div class="visual-text">
+
+                                <span class="visual-label">
+                                    STEGANOGRAPHY
+                                </span>
+
+                                <h3>
+                                    Secure Image
+                                    <br>
+                                    Communication
+                                </h3>
+
+                                <p>
+                                    Embed your secret message
+                                    without changing the visible
+                                    appearance of the image.
+                                </p>
+
+                            </div>
+
+
+                            <div class="visual-process">
+
+                                <div class="process-item">
+
+                                    <div class="process-icon">
+                                        <i class="fa-solid fa-image"></i>
+                                    </div>
+
+                                    <span>
+                                        Cover Image
+                                    </span>
+
+                                </div>
+
+
+                                <div class="process-line"></div>
+
+
+                                <div class="process-item">
+
+                                    <div class="process-icon active">
+                                        <i class="fa-solid fa-lock"></i>
+                                    </div>
+
+                                    <span>
+                                        Secret Data
+                                    </span>
+
+                                </div>
+
+
+                                <div class="process-line"></div>
+
+
+                                <div class="process-item">
+
+                                    <div class="process-icon success">
+                                        <i class="fa-solid fa-check"></i>
+                                    </div>
+
+                                    <span>
+                                        Stego Image
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Floating card -->
+
+                    <div class="floating-card floating-card-top">
+
+                        <div class="floating-icon">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+
+                        <div>
+
+                            <strong>
+                                Secure
+                            </strong>
+
+                            <span>
+                                AES-GCM Encryption
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="floating-card floating-card-bottom">
+
+                        <div class="floating-icon blue">
+                            <i class="fa-solid fa-chart-line"></i>
+                        </div>
+
+                        <div>
+
+                            <strong>
+                                Image Quality
+                            </strong>
+
+                            <span>
+                                PSNR & MSE Analysis
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             FEATURES
+        ========================== -->
+
+        <section class="features-section">
+
+            <div class="section-container">
+
+                <div class="section-heading">
+
+                    <span class="section-label">
+                        FEATURES
+                    </span>
+
+                    <h2>
+                        Built for Secure
+                        <span>Steganography</span>
+                    </h2>
+
+                    <p>
+                        StegoLab menggabungkan beberapa teknik untuk
+                        menyisipkan pesan dan menganalisis hasil steganografi.
+                    </p>
+
+                </div>
+
+
+                <div class="feature-grid">
+
+
+                    <!-- Feature 1 -->
+
+                    <div class="feature-card">
+
+                        <div class="feature-icon blue-icon">
+
+                            <i class="fa-solid fa-code"></i>
+
+                        </div>
+
+                        <h3>
+                            LSB Steganography
+                        </h3>
+
+                        <p>
+                            Menyisipkan data rahasia pada Least Significant
+                            Bit dari pixel gambar dengan perubahan visual
+                            yang sangat kecil.
+                        </p>
+
+                    </div>
+
+
+                    <!-- Feature 2 -->
+
+                    <div class="feature-card">
+
+                        <div class="feature-icon purple-icon">
+
+                            <i class="fa-solid fa-lock"></i>
+
+                        </div>
+
+                        <h3>
+                            AES-GCM Encryption
+                        </h3>
+
+                        <p>
+                            Pesan dienkripsi terlebih dahulu sebelum
+                            disisipkan ke dalam gambar untuk meningkatkan
+                            keamanan data.
+                        </p>
+
+                    </div>
+
+
+                    <!-- Feature 3 -->
+
+                    <div class="feature-card">
+
+                        <div class="feature-icon green-icon">
+
+                            <i class="fa-solid fa-shuffle"></i>
+
+                        </div>
+
+                        <h3>
+                            Randomized Position
+                        </h3>
+
+                        <p>
+                            Posisi penyisipan data menggunakan PRNG yang
+                            dikendalikan oleh stego-key sehingga lokasi
+                            data tidak berurutan.
+                        </p>
+
+                    </div>
+
+
+                    <!-- Feature 4 -->
+
+                    <div class="feature-card">
+
+                        <div class="feature-icon orange-icon">
+
+                            <i class="fa-solid fa-chart-column"></i>
+
+                        </div>
+
+                        <h3>
+                            Image Analysis
+                        </h3>
+
+                        <p>
+                            Analisis kualitas gambar menggunakan MSE,
+                            PSNR, histogram, dan visualisasi Enhanced LSB.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             HOW IT WORKS
+        ========================== -->
+
+        <section class="how-section">
+
+            <div class="section-container">
+
+                <div class="section-heading">
+
+                    <span class="section-label">
+                        HOW IT WORKS
+                    </span>
+
+                    <h2>
+                        Three Simple
+                        <span>Steps</span>
+                    </h2>
+
+                    <p>
+                        Sisipkan pesan rahasia ke dalam gambar
+                        hanya dengan beberapa langkah.
+                    </p>
+
+                </div>
+
+
+                <div class="steps">
+
+                    <!-- STEP 1 -->
+
+                    <div class="step">
+
+                        <div class="step-number">
+                            01
+                        </div>
+
+                        <div class="step-icon">
+                            <i class="fa-solid fa-upload"></i>
+                        </div>
+
+                        <h3>
+                            Upload Image
+                        </h3>
+
+                        <p>
+                            Pilih gambar PNG atau BMP yang akan
+                            digunakan sebagai cover image.
+                        </p>
+
+                    </div>
+
+
+                    <div class="step-connector"></div>
+
+
+                    <!-- STEP 2 -->
+
+                    <div class="step">
+
+                        <div class="step-number">
+                            02
+                        </div>
+
+                        <div class="step-icon">
+                            <i class="fa-solid fa-key"></i>
+                        </div>
+
+                        <h3>
+                            Add Secret
+                        </h3>
+
+                        <p>
+                            Masukkan pesan rahasia dan stego-key
+                            untuk proses enkripsi dan embedding.
+                        </p>
+
+                    </div>
+
+
+                    <div class="step-connector"></div>
+
+
+                    <!-- STEP 3 -->
+
+                    <div class="step">
+
+                        <div class="step-number">
+                            03
+                        </div>
+
+                        <div class="step-icon">
+                            <i class="fa-solid fa-shield-check"></i>
+                        </div>
+
+                        <h3>
+                            Get Stego Image
+                        </h3>
+
+                        <p>
+                            Dapatkan gambar stego dan lihat hasil
+                            analisis kualitas citra.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             CTA
+        ========================== -->
+
+        <section class="cta-section">
+
+            <div class="cta-container">
+
+                <div class="cta-content">
+
+                    <span class="section-label">
+                        READY TO START?
+                    </span>
+
+                    <h2>
+                        Hide your message
+                        <span>securely.</span>
+                    </h2>
+
+                    <p>
+                        Mulai proses steganografi dan simpan
+                        pesan rahasiamu di dalam gambar.
+                    </p>
+
+                </div>
+
+
+                <a href="/encode"
+                   class="btn btn-white">
+
+                    Start Encoding
+
+                    <i class="fa-solid fa-arrow-right"></i>
+
+                </a>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- =========================
+         FOOTER
+    ========================== -->
+
+    <footer class="footer">
+
+        <div class="footer-container">
+
+            <div class="footer-brand">
+
+                <a href="/" class="brand">
+
+                    <div class="brand-icon">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+
+                    <span>
+                        Stego<span class="brand-highlight">Lab</span>
+                    </span>
+
+                </a>
+
+                <p>
+                    Image steganography application
+                    for secure message communication.
+                </p>
+
+            </div>
+
+
+            <div class="footer-links">
+
+                <a href="/">
+                    Home
+                </a>
+
+                <a href="/encode">
+                    Encode
+                </a>
+
+                <a href="/decode">
+                    Decode
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <div class="footer-bottom">
+
+            <p>
+                © 2026 StegoLab. Academic Project.
+            </p>
+
+            <span>
+                Informatics
+            </span>
+
+        </div>
+
+    </footer>
+
 
 </body>
 
