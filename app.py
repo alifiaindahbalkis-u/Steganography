@@ -35,8 +35,12 @@ from steganography.jpeg_test import (
 # Konfigurasi Aplikasi
 app = Flask(__name__)
 
-UPLOAD_FOLDER = "uploads"
-OUTPUT_FOLDER = "outputs"
+if os.environ.get("VERCEL") == "1":
+    UPLOAD_FOLDER = "/tmp/uploads"
+    OUTPUT_FOLDER = "/tmp/outputs"
+else:
+    UPLOAD_FOLDER = "uploads"
+    OUTPUT_FOLDER = "outputs"
 
 ALLOWED_EXTENSIONS = {"png", "bmp"}
 
