@@ -4,26 +4,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Encode - StegoLab</title>
-    
+
+    <!-- Google Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
+
+    <!-- Font Awesome -->
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
+
     <!-- CSS Utama -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    
-    <!-- Script Chart.js untuk Histogram -->
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
+
     <style>
+
+        /* =====================================================
+           FORM WRAPPER
+        ===================================================== */
+
         .form-wrapper {
             max-width: 900px;
             margin: 0 auto;
-            transform: none; 
+            transform: none;
         }
-        
+
+
+        /* =====================================================
+           ANALYSIS CARD
+        ===================================================== */
+
         .analysis-card {
             background: white;
             border: 1px solid var(--border);
@@ -46,6 +70,11 @@
             margin-bottom: 20px;
         }
 
+
+        /* =====================================================
+           IMAGE PREVIEW
+        ===================================================== */
+
         .image-preview-container {
             border: 1px solid var(--border);
             border-radius: var(--radius-sm);
@@ -67,6 +96,47 @@
             text-align: center;
         }
 
+
+        /* =====================================================
+           TRANSPARENCY PREVIEW
+        ===================================================== */
+
+        .image-preview-background {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            min-height: 180px;
+
+            border-radius: 4px;
+            padding: 10px;
+
+            background-color: #ffffff;
+
+            /*
+             Checkerboard sederhana untuk menunjukkan
+             area transparan pada PNG.
+            */
+            background-image:
+                linear-gradient(45deg, #e2e8f0 25%, transparent 25%),
+                linear-gradient(-45deg, #e2e8f0 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #e2e8f0 75%),
+                linear-gradient(-45deg, transparent 75%, #e2e8f0 75%);
+
+            background-size: 20px 20px;
+
+            background-position:
+                0 0,
+                0 10px,
+                10px -10px,
+                -10px 0px;
+        }
+
+
+        /* =====================================================
+           INFO BOX
+        ===================================================== */
+
         .info-box {
             background: var(--primary-light);
             border-left: 4px solid var(--primary);
@@ -77,24 +147,35 @@
             border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
         }
 
+
+        /* =====================================================
+           GRID
+        ===================================================== */
+
         .grid-2 {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
         }
 
-        /* Form Utilities */
+
+        /* =====================================================
+           FORM UTILITIES
+        ===================================================== */
+
         .form-group {
             display: flex;
             flex-direction: column;
             gap: 8px;
             margin-bottom: 22px;
         }
+
         .form-group label {
             font-size: 13px;
             font-weight: 700;
             color: var(--dark);
         }
+
         .form-control {
             width: 100%;
             padding: 14px;
@@ -105,398 +186,1364 @@
             background: white;
             color: var(--text);
             transition: 0.25s ease;
+            box-sizing: border-box;
         }
+
         .form-control:focus {
             outline: none;
             border-color: var(--primary);
             box-shadow: 0 0 0 3px var(--primary-light);
         }
+
+
+        /* =====================================================
+           ALERT
+        ===================================================== */
+
         .alert {
             padding: 14px 18px;
             border-radius: var(--radius-sm);
             font-size: 13px;
             font-weight: 600;
             margin-bottom: 25px;
+
             display: flex;
             align-items: center;
             gap: 12px;
         }
+
         .alert-error {
             background: var(--orange-light);
             color: var(--orange);
             border: 1px solid rgba(234, 88, 12, 0.2);
         }
+
         .alert-success {
             background: var(--success-light);
             color: var(--success);
             border: 1px solid rgba(22, 163, 74, 0.2);
         }
+
+
+        /* =====================================================
+           METRICS
+        ===================================================== */
+
         .metrics-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 15px;
             margin-bottom: 30px;
         }
+
         .metric-box {
             background: #f8fafc;
             border: 1px solid var(--border);
             padding: 15px;
             border-radius: var(--radius-sm);
+
             display: flex;
             flex-direction: column;
             gap: 5px;
+
             text-align: center;
         }
-        .metric-box strong { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
-        .metric-box span { font-size: 18px; font-weight: 800; color: var(--dark); }
-        
-        @media (max-width: 768px) {
-            .metrics-grid, .grid-2 { grid-template-columns: 1fr; }
+
+        .metric-box strong {
+            font-size: 11px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
+
+        .metric-box span {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--dark);
+        }
+
+
+        /* =====================================================
+           DOWNLOAD / ACTION
+        ===================================================== */
+
+        .action-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .action-row .btn {
+            flex: 1;
+            min-width: 220px;
+            text-align: center;
+        }
+
+
+        /* =====================================================
+           RESPONSIVE
+        ===================================================== */
+
+        @media (max-width: 768px) {
+
+            .metrics-grid,
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .action-row {
+                flex-direction: column;
+            }
+
+            .action-row .btn {
+                min-width: 100%;
+            }
+
+        }
+
     </style>
+
 </head>
+
 
 <body>
 
+    <!-- =====================================================
+         NAVBAR
+    ===================================================== -->
+
     <header class="navbar">
+
         <div class="nav-container">
+
             <a href="/" class="brand">
+
                 <div class="brand-icon">
                     <i class="fa-solid fa-shield-halved"></i>
                 </div>
-                <span>Stego<span class="brand-highlight">Lab</span></span>
+
+                <span>
+                    Stego<span class="brand-highlight">Lab</span>
+                </span>
+
             </a>
+
+
             <nav class="nav-links">
-                <a href="/">Home</a>
-                <a href="/encode" class="active">Encode</a>
-                <a href="/decode">Decode</a>
+
+                <a href="/">
+                    Home
+                </a>
+
+                <a href="/encode" class="active">
+                    Encode
+                </a>
+
+                <a href="/decode">
+                    Decode
+                </a>
+
             </nav>
+
+
             <a href="/encode" class="nav-button">
-                Get Started <i class="fa-solid fa-arrow-right"></i>
+
+                Get Started
+
+                <i class="fa-solid fa-arrow-right"></i>
+
             </a>
+
         </div>
+
     </header>
 
+
+    <!-- =====================================================
+         MAIN
+    ===================================================== -->
+
     <main>
-        <section class="how-section" style="padding-top: 40px; background: var(--background);">
+
+        <section
+            class="how-section"
+            style="
+                padding-top: 40px;
+                background: var(--background);
+            "
+        >
+
             <div class="section-container">
-                
+
+
                 {% if not success %}
-                <!-- VIEW FORM INPUT -->
-                <div class="image-card-main form-wrapper" style="max-width: 600px; padding: 40px;">
-                    <div class="section-heading" style="text-align: center; margin-bottom: 35px;">
-                        <span class="section-label">STEGANOGRAPHY PROCESS</span>
-                        <h2>Hide Your <span>Message</span></h2>
-                        <p>Embed your secret data securely into an image.</p>
+
+                <!-- =================================================
+                     FORM INPUT
+                ================================================= -->
+
+                <div
+                    class="image-card-main form-wrapper"
+                    style="
+                        max-width: 600px;
+                        padding: 40px;
+                    "
+                >
+
+                    <div
+                        class="section-heading"
+                        style="
+                            text-align: center;
+                            margin-bottom: 35px;
+                        "
+                    >
+
+                        <span class="section-label">
+                            STEGANOGRAPHY PROCESS
+                        </span>
+
+                        <h2>
+                            Hide Your
+                            <span>Message</span>
+                        </h2>
+
+                        <p>
+                            Embed your secret data securely into an image.
+                        </p>
+
                     </div>
+
+
+                    <!-- ERROR -->
 
                     {% if error %}
+
                     <div class="alert alert-error">
+
                         <i class="fa-solid fa-triangle-exclamation"></i>
-                        <div>{{ error }}</div>
+
+                        <div>
+                            {{ error }}
+                        </div>
+
                     </div>
+
                     {% endif %}
 
-                    <form action="/encode" method="post" enctype="multipart/form-data">
-                        <div class="form-group">
-                            <label><i class="fa-solid fa-image" style="color: var(--primary); margin-right: 5px;"></i> Cover Image (PNG / BMP)</label>
-                            <input type="file" name="image" class="form-control" accept=".png, .bmp" required>
-                        </div>
+
+                    <!-- FORM -->
+
+                    <form
+                        action="/encode"
+                        method="post"
+                        enctype="multipart/form-data"
+                    >
+
+
+                        <!-- COVER IMAGE -->
 
                         <div class="form-group">
-                            <label><i class="fa-solid fa-envelope" style="color: var(--primary); margin-right: 5px;"></i> Secret Message</label>
-                            <textarea name="message" class="form-control" rows="4" placeholder="Enter the message you want to hide..." required></textarea>
+
+                            <label>
+
+                                <i
+                                    class="fa-solid fa-image"
+                                    style="
+                                        color: var(--primary);
+                                        margin-right: 5px;
+                                    "
+                                ></i>
+
+                                Cover Image (PNG / BMP)
+
+                            </label>
+
+
+                            <input
+                                type="file"
+                                name="image"
+                                class="form-control"
+                                accept=".png, .bmp"
+                                required
+                            >
+
                         </div>
+
+
+                        <!-- SECRET MESSAGE -->
 
                         <div class="form-group">
-                            <label><i class="fa-solid fa-key" style="color: var(--primary); margin-right: 5px;"></i> Stego Key (Password)</label>
-                            <input type="password" name="stego_key" class="form-control" placeholder="Enter a secure key for encryption..." required>
+
+                            <label>
+
+                                <i
+                                    class="fa-solid fa-envelope"
+                                    style="
+                                        color: var(--primary);
+                                        margin-right: 5px;
+                                    "
+                                ></i>
+
+                                Secret Message
+
+                            </label>
+
+
+                            <textarea
+                                name="message"
+                                class="form-control"
+                                rows="4"
+                                placeholder="Enter the message you want to hide..."
+                                required
+                            ></textarea>
+
                         </div>
 
-                        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px; font-size: 15px; padding: 15px;">
-                            <i class="fa-solid fa-lock"></i> Start Encoding
+
+                        <!-- STEGO KEY -->
+
+                        <div class="form-group">
+
+                            <label>
+
+                                <i
+                                    class="fa-solid fa-key"
+                                    style="
+                                        color: var(--primary);
+                                        margin-right: 5px;
+                                    "
+                                ></i>
+
+                                Stego Key (Password)
+
+                            </label>
+
+
+                            <input
+                                type="password"
+                                name="stego_key"
+                                class="form-control"
+                                placeholder="Enter a secure key for encryption..."
+                                required
+                            >
+
+                        </div>
+
+
+                        <!-- BUTTON -->
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary"
+                            style="
+                                width: 100%;
+                                margin-top: 10px;
+                                font-size: 15px;
+                                padding: 15px;
+                            "
+                        >
+
+                            <i class="fa-solid fa-lock"></i>
+
+                            Start Encoding
+
                         </button>
+
+
                     </form>
+
                 </div>
+
+
                 {% else %}
 
 
-                <!-- VIEW RESULT & ANALYSIS-->
+                <!-- =================================================
+                     RESULT + ANALYSIS
+                ================================================= -->
+
                 <div class="form-wrapper">
-                    
-                    <!-- Notifikasi & Metrik Utama -->
-                    <div class="analysis-card" style="border-top: 4px solid var(--success);">
-                        <div class="alert alert-success" style="margin-bottom: 20px;">
+
+
+                    <!-- =================================================
+                         SUCCESS + METRICS
+                    ================================================= -->
+
+                    <div
+                        class="analysis-card"
+                        style="
+                            border-top: 4px solid var(--success);
+                        "
+                    >
+
+                        <div
+                            class="alert alert-success"
+                            style="margin-bottom: 20px;"
+                        >
+
                             <i class="fa-solid fa-circle-check"></i>
-                            <div>Encoding successful! The stego image is ready.</div>
+
+                            <div>
+                                Encoding successful! The stego image is ready.
+                            </div>
+
                         </div>
+
+
+                        <!-- METRICS -->
 
                         <div class="metrics-grid">
+
+
+                            <!-- MESSAGE SIZE -->
+
                             <div class="metric-box">
-                                <strong>Message Size</strong>
-                                <span>{{ message_length }} bytes</span>
+
+                                <strong>
+                                    Message Size
+                                </strong>
+
+                                <span>
+                                    {{ message_length }} bytes
+                                </span>
+
                             </div>
+
+
+                            <!-- MAX CAPACITY -->
+
                             <div class="metric-box">
-                                <strong>Max Capacity</strong>
-                                <span>{{ capacity }} bytes</span>
+
+                                <strong>
+                                    Max Capacity
+                                </strong>
+
+                                <span>
+                                    {{ capacity }} bytes
+                                </span>
+
                             </div>
+
+
+                            <!-- MSE -->
+
                             <div class="metric-box">
-                                <strong>MSE</strong>
-                                <span>{{ mse | round(4) }}</span>
+
+                                <strong>
+                                    MSE
+                                </strong>
+
+                                <span>
+                                    {{ mse | round(4) }}
+                                </span>
+
                             </div>
+
+
+                            <!-- PSNR -->
+
                             <div class="metric-box">
-                                <strong>PSNR</strong>
-                                <span>{{ psnr | round(2) }} dB</span>
+
+                                <strong>
+                                    PSNR
+                                </strong>
+
+                                <span>
+                                    {{ psnr | round(2) }} dB
+                                </span>
+
                             </div>
+
+
                         </div>
 
-                        <div style="display: flex; gap: 15px;">
-                            <a href="{{ url_for('output_file', filename=output_filename) }}" download class="btn btn-primary" style="flex: 1; text-align: center;">
-                                <i class="fa-solid fa-download"></i> Download Stego PNG
+
+                        <!-- ACTION BUTTON -->
+
+                        <div class="action-row">
+
+                            <a
+                                href="{{ stego_data_uri }}"
+                                download="{{ output_filename }}"
+                                class="btn btn-primary"
+                            >
+
+                                <i class="fa-solid fa-download"></i>
+
+                                Download Stego PNG
+
                             </a>
-                            <a href="/encode" class="btn btn-secondary" style="flex: 1; text-align: center;">
-                                <i class="fa-solid fa-rotate-left"></i> Encode Another Image
+
+
+                            <a
+                                href="/encode"
+                                class="btn btn-secondary"
+                            >
+
+                                <i class="fa-solid fa-rotate-left"></i>
+
+                                Encode Another Image
+
                             </a>
+
                         </div>
+
                     </div>
-                    
-                    <!-- Perbandingan Cover Image vs Stego Image -->
+
+
+                    <!-- =================================================
+                         COVER VS STEGO
+                    ================================================= -->
+
                     <div class="analysis-card">
-                        <h3 class="analysis-title">Perbandingan Citra</h3>
-                        <p class="analysis-desc">Membandingkan secara visual antara gambar asli (cover image) dan gambar hasil steganografi (stego image).</p>
-                        
+
+                        <h3 class="analysis-title">
+                            Perbandingan Citra
+                        </h3>
+
+                        <p class="analysis-desc">
+                            Membandingkan secara visual antara gambar asli
+                            (cover image) dan gambar hasil steganografi
+                            (stego image).
+                        </p>
+
+
                         <div class="grid-2">
-                            <!-- Cover Image -->
+
+
+                            <!-- COVER -->
+
                             <div class="image-preview-container">
-                                <h4 style="font-size: 14px; margin-bottom: 10px; color: var(--dark);">Cover Image (Asli)</h4>
-                                <div style="display: flex; justify-content: center; background: #e2e8f0; border-radius: 4px; padding: 10px;">
-                                    <img src="{{ url_for('upload_file', filename=original_filename) }}" style="max-height: 250px; max-width: 100%;">
+
+                                <h4
+                                    style="
+                                        font-size: 14px;
+                                        margin-bottom: 10px;
+                                        color: var(--dark);
+                                    "
+                                >
+                                    Cover Image (Asli)
+                                </h4>
+
+
+                                <div class="image-preview-background">
+
+                                    <img
+                                        src="{{ cover_data_uri }}"
+                                        alt="Cover Image"
+                                        style="
+                                            max-height: 250px;
+                                            max-width: 100%;
+                                            object-fit: contain;
+                                            border-radius: 4px;
+                                        "
+                                    >
+
                                 </div>
-                                <div style="font-size: 11px; color: var(--muted); margin-top: 10px;">{{ original_filename }}</div>
+
+
+                                <div
+                                    style="
+                                        font-size: 11px;
+                                        color: var(--muted);
+                                        margin-top: 10px;
+                                    "
+                                >
+                                    {{ original_filename }}
+                                </div>
+
                             </div>
-                            
-                            <!-- Stego Image -->
+
+
+                            <!-- STEGO -->
+
                             <div class="image-preview-container">
-                                <h4 style="font-size: 14px; margin-bottom: 10px; color: var(--dark);">Stego Image (Hasil)</h4>
-                                <div style="display: flex; justify-content: center; background: #e2e8f0; border-radius: 4px; padding: 10px;">
-                                    <img src="{{ url_for('output_file', filename=output_filename) }}" style="max-height: 250px; max-width: 100%;">
+
+                                <h4
+                                    style="
+                                        font-size: 14px;
+                                        margin-bottom: 10px;
+                                        color: var(--dark);
+                                    "
+                                >
+                                    Stego Image (Hasil)
+                                </h4>
+
+
+                                <div class="image-preview-background">
+
+                                    <img
+                                        src="{{ stego_data_uri }}"
+                                        alt="Stego Image"
+                                        style="
+                                            max-height: 250px;
+                                            max-width: 100%;
+                                            object-fit: contain;
+                                            border-radius: 4px;
+                                        "
+                                    >
+
                                 </div>
-                                <div style="font-size: 11px; color: var(--muted); margin-top: 10px;">{{ output_filename }}</div>
+
+
+                                <div
+                                    style="
+                                        font-size: 11px;
+                                        color: var(--muted);
+                                        margin-top: 10px;
+                                    "
+                                >
+                                    {{ output_filename }}
+                                </div>
+
                             </div>
+
                         </div>
+
                     </div>
 
-                    <!-- Enhanced LSB Visualizer-->
+
+                    <!-- =================================================
+                         ENHANCED LSB
+                    ================================================= -->
+
                     <div class="analysis-card">
-                        <h3 class="analysis-title">Enhanced LSB</h3>
-                        <p class="analysis-desc">Visualisasi bit LSB dari stego image. Gambar ini digunakan untuk membantu analisis steganografi secara visual.</p>
-                        
+
+                        <h3 class="analysis-title">
+                            Enhanced LSB
+                        </h3>
+
+                        <p class="analysis-desc">
+                            Visualisasi bit LSB dari stego image.
+                            Gambar ini digunakan untuk membantu analisis
+                            steganografi secara visual.
+                        </p>
+
+
                         <div class="image-preview-container">
-                            <h4 style="font-size: 14px; margin-bottom: 10px; color: var(--dark);">LSB Plane</h4>
-                            <div style="display: flex; justify-content: center; background: #e2e8f0; border-radius: 4px; padding: 20px;">
-                                <img src="{{ url_for('output_file', filename=lsb_filename) }}" alt="Enhanced LSB Visualizer" style="max-height: 400px; max-width: 100%;">
+
+                            <h4
+                                style="
+                                    font-size: 14px;
+                                    margin-bottom: 10px;
+                                    color: var(--dark);
+                                "
+                            >
+                                LSB Plane
+                            </h4>
+
+
+                            <div
+                                style="
+                                    display: flex;
+                                    justify-content: center;
+                                    align-items: center;
+                                    background: #e2e8f0;
+                                    border-radius: 4px;
+                                    padding: 20px;
+                                    min-height: 180px;
+                                "
+                            >
+
+                                <img
+                                    src="{{ lsb_data_uri }}"
+                                    alt="Enhanced LSB Visualizer"
+                                    style="
+                                        max-height: 400px;
+                                        max-width: 100%;
+                                        object-fit: contain;
+                                    "
+                                >
+
                             </div>
-                            <div class="image-caption">{{ lsb_filename }}</div>
+
+
+                            <div class="image-caption">
+                                {{ lsb_filename }}
+                            </div>
+
                         </div>
+
 
                         <div class="info-box">
-                            <strong>Catatan:</strong> Enhanced LSB hanya merupakan visualisasi untuk analisis. File ini bukan stego image yang digunakan untuk proses decode.
+
+                            <strong>
+                                Catatan:
+                            </strong>
+
+                            Enhanced LSB hanya merupakan visualisasi
+                            untuk analisis. File ini bukan stego image
+                            yang digunakan untuk proses decode.
+
                         </div>
+
                     </div>
 
 
-                    <!-- Histogram-->
+                    <!-- =================================================
+                         HISTOGRAM
+                    ================================================= -->
+
                     <div class="analysis-card">
-                        <h3 class="analysis-title">Histogram Cover vs Stego</h3>
-                        <p class="analysis-desc">Histogram digunakan untuk melihat distribusi nilai pixel pada cover image dan stego image.</p>
-                        
-                        <div style="height: 400px; width: 100%;">
+
+                        <h3 class="analysis-title">
+                            Histogram Cover vs Stego
+                        </h3>
+
+                        <p class="analysis-desc">
+                            Histogram digunakan untuk melihat distribusi
+                            nilai pixel pada cover image dan stego image.
+                        </p>
+
+
+                        <div
+                            style="
+                                height: 400px;
+                                width: 100%;
+                            "
+                        >
+
                             <canvas id="histogramChart"></canvas>
+
                         </div>
+
                     </div>
 
 
-                    <!-- JPEG Re-save Test-->
+                    <!-- =================================================
+                         JPEG RE-SAVE TEST
+                    ================================================= -->
+
                     <div class="analysis-card">
-                        <h3 class="analysis-title">JPEG Re-save Test</h3>
-                        <p class="analysis-desc">Pengujian ini menyimpan ulang stego image dari PNG ke JPEG dengan kualitas 75. Tujuannya untuk menguji ketahanan data LSB terhadap kompresi lossy JPEG.</p>
-                        
-                        <div class="info-box" style="margin-top: 0; margin-bottom: 25px; border-left-color: var(--dark); background: #f1f5f9;">
-                            <strong style="display: block; margin-bottom: 5px;">Cara Pengujian:</strong>
-                            <ol style="margin-left: 20px; font-size: 13px;">
-                                <li>Stego image disimpan ulang menjadi JPEG dengan quality 75.</li>
-                                <li>Masukkan stego-key yang digunakan saat proses encoding.</li>
-                                <li>Klik tombol <strong>Decode JPEG</strong> untuk mencoba mengambil pesan.</li>
-                                <li>Jika decode gagal, sistem akan menampilkan penyebab kegagalannya.</li>
+
+                        <h3 class="analysis-title">
+                            JPEG Re-save Test
+                        </h3>
+
+
+                        <p class="analysis-desc">
+
+                            Pengujian ini menyimpan ulang stego image
+                            dari PNG ke JPEG dengan kualitas 75.
+
+                            Tujuannya untuk menguji ketahanan data LSB
+                            terhadap kompresi lossy JPEG.
+
+                        </p>
+
+
+                        <!-- INFO -->
+
+                        <div
+                            class="info-box"
+                            style="
+                                margin-top: 0;
+                                margin-bottom: 25px;
+                                border-left-color: var(--dark);
+                                background: #f1f5f9;
+                            "
+                        >
+
+                            <strong
+                                style="
+                                    display: block;
+                                    margin-bottom: 5px;
+                                "
+                            >
+                                Cara Pengujian:
+                            </strong>
+
+
+                            <ol
+                                style="
+                                    margin-left: 20px;
+                                    font-size: 13px;
+                                "
+                            >
+
+                                <li>
+                                    Stego image disimpan ulang menjadi
+                                    JPEG dengan quality 75.
+                                </li>
+
+                                <li>
+                                    Masukkan stego-key yang digunakan
+                                    saat proses encoding.
+                                </li>
+
+                                <li>
+                                    Klik tombol
+                                    <strong>Decode JPEG</strong>
+                                    untuk mencoba mengambil pesan.
+                                </li>
+
+                                <li>
+                                    Jika decode gagal, sistem akan
+                                    menampilkan penyebab kegagalannya.
+                                </li>
+
                             </ol>
+
                         </div>
+
 
                         <div class="grid-2">
-                            <!-- Stego PNG Comparison -->
+
+
+                            <!-- =================================================
+                                 STEGO PNG
+                            ================================================= -->
+
                             <div class="image-preview-container">
-                                <h4 style="font-size: 14px; margin-bottom: 10px; color: var(--dark);">Stego PNG</h4>
-                                <div style="display: flex; justify-content: center; background: #e2e8f0; border-radius: 4px; padding: 10px;">
-                                    <img src="{{ url_for('output_file', filename=output_filename) }}" style="max-height: 250px; max-width: 100%;">
+
+                                <h4
+                                    style="
+                                        font-size: 14px;
+                                        margin-bottom: 10px;
+                                        color: var(--dark);
+                                    "
+                                >
+                                    Stego PNG
+                                </h4>
+
+
+                                <div class="image-preview-background">
+
+                                    <img
+                                        src="{{ stego_data_uri }}"
+                                        alt="Stego PNG"
+                                        style="
+                                            max-height: 250px;
+                                            max-width: 100%;
+                                            object-fit: contain;
+                                            border-radius: 4px;
+                                        "
+                                    >
+
                                 </div>
-                                <div style="font-size: 11px; color: var(--muted); margin-top: 10px;">Format: PNG</div>
+
+
+                                <div
+                                    style="
+                                        font-size: 11px;
+                                        color: var(--muted);
+                                        margin-top: 10px;
+                                    "
+                                >
+                                    Format: PNG
+                                </div>
+
                             </div>
-                            
-                            <!-- JPEG Re-save Comparison -->
+
+
+                            <!-- =================================================
+                                 JPEG
+                            ================================================= -->
+
                             <div class="image-preview-container">
-                                <h4 style="font-size: 14px; margin-bottom: 10px; color: var(--dark);">JPEG Re-save</h4>
-                                <div style="display: flex; justify-content: center; background: #e2e8f0; border-radius: 4px; padding: 10px;">
-                                    <img src="{{ url_for('output_file', filename=jpeg_filename) }}" style="max-height: 250px; max-width: 100%;">
+
+                                <h4
+                                    style="
+                                        font-size: 14px;
+                                        margin-bottom: 10px;
+                                        color: var(--dark);
+                                    "
+                                >
+                                    JPEG Re-save
+                                </h4>
+
+
+                                <div
+                                    style="
+                                        display: flex;
+                                        justify-content: center;
+                                        align-items: center;
+                                        background: white;
+                                        border-radius: 4px;
+                                        padding: 10px;
+                                        min-height: 180px;
+                                    "
+                                >
+
+                                    <img
+                                        src="{{ jpeg_data_uri }}"
+                                        alt="JPEG Re-save"
+                                        style="
+                                            max-height: 250px;
+                                            max-width: 100%;
+                                            object-fit: contain;
+                                            border-radius: 4px;
+                                        "
+                                    >
+
                                 </div>
-                                <div style="font-size: 11px; color: var(--muted); margin-top: 10px;">
-                                    <div>Format: JPEG</div>
-                                    <div>Quality: 75</div>
+
+
+                                <div
+                                    style="
+                                        font-size: 11px;
+                                        color: var(--muted);
+                                        margin-top: 10px;
+                                    "
+                                >
+
+                                    <div>
+                                        Format: JPEG
+                                    </div>
+
+                                    <div>
+                                        Quality: 75
+                                    </div>
+
                                 </div>
+
                             </div>
+
                         </div>
 
-                        <!-- JPEG Test Form -->
-                        <div style="margin-top: 25px; border-top: 1px solid var(--border); padding-top: 20px;">
-                            <h4 style="font-size: 15px; margin-bottom: 15px;">Uji Decode JPEG</h4>
-                            <form action="/jpeg-test" method="post" style="display: flex; gap: 10px; align-items: center;">
-                                <input type="hidden" name="jpeg_filename" value="{{ jpeg_filename }}">
-                                <input type="hidden" name="original_message" value="{{ original_message }}">
-                                <input type="password" name="stego_key" class="form-control" placeholder="Masukkan stego key..." required style="flex: 1; margin: 0;">
-                                <button type="submit" class="btn btn-secondary" style="padding: 14px 25px; margin: 0;">
+
+                        <!-- =================================================
+                             JPEG TEST FORM
+                        ================================================= -->
+
+                        <div
+                            style="
+                                margin-top: 25px;
+                                border-top: 1px solid var(--border);
+                                padding-top: 20px;
+                            "
+                        >
+
+                            <h4
+                                style="
+                                    font-size: 15px;
+                                    margin-bottom: 15px;
+                                "
+                            >
+                                Uji Decode JPEG
+                            </h4>
+
+
+                            <form
+                                action="/jpeg-test"
+                                method="post"
+                                style="
+                                    display: flex;
+                                    gap: 10px;
+                                    align-items: center;
+                                    flex-wrap: wrap;
+                                "
+                            >
+
+
+                                <!-- Nama JPEG -->
+
+                                <input
+                                    type="hidden"
+                                    name="jpeg_filename"
+                                    value="{{ jpeg_filename }}"
+                                >
+
+
+                                <!-- Pesan Asli -->
+
+                                <input
+                                    type="hidden"
+                                    name="original_message"
+                                    value="{{ original_message }}"
+                                >
+
+
+                                <!-- JPEG Base64 -->
+
+                                <input
+                                    type="hidden"
+                                    name="jpeg_data_base64"
+                                    value="{{ jpeg_data_base64 }}"
+                                >
+
+
+                                <!-- STEGO KEY -->
+
+                                <input
+                                    type="password"
+                                    name="stego_key"
+                                    class="form-control"
+                                    placeholder="Masukkan stego key..."
+                                    required
+                                    style="
+                                        flex: 1;
+                                        margin: 0;
+                                        min-width: 200px;
+                                    "
+                                >
+
+
+                                <!-- BUTTON -->
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-secondary"
+                                    style="
+                                        padding: 14px 25px;
+                                        margin: 0;
+                                    "
+                                >
+
+                                    <i class="fa-solid fa-code"></i>
+
                                     Decode JPEG
+
                                 </button>
+
+
                             </form>
+
                         </div>
+
                     </div>
+
 
                 </div>
 
-                <!-- Setup Script for Histogram -->
+
+                <!-- =================================================
+                     HISTOGRAM SCRIPT
+                ================================================= -->
+
                 <script>
-                    const coverHist = {{ cover_histogram | tojson }};
-                    const stegoHist = {{ stego_histogram | tojson }};
-                    
-                    const labels = Array.from({length: 256}, (_, i) => i);
-                    
+
+                    const coverHist =
+                        {{ cover_histogram | tojson }};
+
+                    const stegoHist =
+                        {{ stego_histogram | tojson }};
+
+
+                    const labels =
+                        Array.from(
+                            { length: 256 },
+                            (_, i) => i
+                        );
+
+
                     const data = {
+
                         labels: labels,
+
                         datasets: [
+
                             {
                                 label: 'Cover Red',
                                 data: coverHist.red,
-                                borderColor: 'rgba(54, 162, 235, 1)',
-                                backgroundColor: 'rgba(54, 162, 235, 0.5)',
+
+                                borderColor:
+                                    'rgba(54, 162, 235, 1)',
+
+                                backgroundColor:
+                                    'rgba(54, 162, 235, 0.5)',
+
                                 borderWidth: 1,
+
                                 fill: false,
+
                                 tension: 0.1
                             },
+
+
                             {
                                 label: 'Stego Red',
                                 data: stegoHist.red,
-                                borderColor: 'rgba(255, 99, 132, 1)',
-                                backgroundColor: 'rgba(255, 99, 132, 0.5)',
+
+                                borderColor:
+                                    'rgba(255, 99, 132, 1)',
+
+                                backgroundColor:
+                                    'rgba(255, 99, 132, 0.5)',
+
                                 borderWidth: 1,
+
                                 fill: false,
+
                                 tension: 0.1
                             },
+
+
                             {
                                 label: 'Cover Green',
                                 data: coverHist.green,
-                                borderColor: 'rgba(75, 192, 192, 1)',
-                                backgroundColor: 'rgba(75, 192, 192, 0.5)',
+
+                                borderColor:
+                                    'rgba(75, 192, 192, 1)',
+
+                                backgroundColor:
+                                    'rgba(75, 192, 192, 0.5)',
+
                                 borderWidth: 1,
+
                                 fill: false,
+
                                 tension: 0.1
                             },
+
+
                             {
                                 label: 'Stego Green',
                                 data: stegoHist.green,
-                                borderColor: 'rgba(255, 206, 86, 1)',
-                                backgroundColor: 'rgba(255, 206, 86, 0.5)',
+
+                                borderColor:
+                                    'rgba(255, 206, 86, 1)',
+
+                                backgroundColor:
+                                    'rgba(255, 206, 86, 0.5)',
+
                                 borderWidth: 1,
+
                                 fill: false,
+
                                 tension: 0.1
                             },
+
+
                             {
                                 label: 'Cover Blue',
                                 data: coverHist.blue,
-                                borderColor: 'rgba(153, 102, 255, 1)',
-                                backgroundColor: 'rgba(153, 102, 255, 0.5)',
+
+                                borderColor:
+                                    'rgba(153, 102, 255, 1)',
+
+                                backgroundColor:
+                                    'rgba(153, 102, 255, 0.5)',
+
                                 borderWidth: 1,
+
                                 fill: false,
+
                                 tension: 0.1
                             },
+
+
                             {
                                 label: 'Stego Blue',
                                 data: stegoHist.blue,
-                                borderColor: 'rgba(201, 203, 207, 1)',
-                                backgroundColor: 'rgba(201, 203, 207, 0.5)',
+
+                                borderColor:
+                                    'rgba(201, 203, 207, 1)',
+
+                                backgroundColor:
+                                    'rgba(201, 203, 207, 0.5)',
+
                                 borderWidth: 1,
+
                                 fill: false,
+
                                 tension: 0.1
                             }
+
                         ]
+
                     };
+
 
                     const config = {
+
                         type: 'line',
+
                         data: data,
+
                         options: {
+
                             responsive: true,
+
                             maintainAspectRatio: false,
+
                             plugins: {
+
                                 legend: {
+
                                     position: 'top',
-                                    labels: { font: { size: 10 } }
-                                }
-                            },
-                            scales: {
-                                x: {
-                                    title: { display: true, text: 'Nilai Pixel', font: { size: 10 } },
-                                    ticks: {
-                                        maxTicksLimit: 30,
-                                        font: { size: 9 }
+
+                                    labels: {
+                                        font: {
+                                            size: 10
+                                        }
                                     }
-                                },
-                                y: {
-                                    title: { display: true, text: 'Jumlah Pixel', font: { size: 10 } },
-                                    ticks: { font: { size: 10 } }
+
                                 }
+
+                            },
+
+
+                            scales: {
+
+                                x: {
+
+                                    title: {
+
+                                        display: true,
+
+                                        text: 'Nilai Pixel',
+
+                                        font: {
+                                            size: 10
+                                        }
+
+                                    },
+
+                                    ticks: {
+
+                                        maxTicksLimit: 30,
+
+                                        font: {
+                                            size: 9
+                                        }
+
+                                    }
+
+                                },
+
+
+                                y: {
+
+                                    title: {
+
+                                        display: true,
+
+                                        text: 'Jumlah Pixel',
+
+                                        font: {
+                                            size: 10
+                                        }
+
+                                    },
+
+                                    ticks: {
+
+                                        font: {
+                                            size: 10
+                                        }
+
+                                    }
+
+                                }
+
                             }
+
                         }
+
                     };
 
-                    const ctx = document.getElementById('histogramChart').getContext('2d');
-                    new Chart(ctx, config);
+
+                    const chartElement =
+                        document.getElementById(
+                            'histogramChart'
+                        );
+
+
+                    if (chartElement) {
+
+                        const ctx =
+                            chartElement.getContext('2d');
+
+                        new Chart(
+                            ctx,
+                            config
+                        );
+
+                    }
+
                 </script>
-                
+
+
                 {% endif %}
 
             </div>
+
         </section>
+
     </main>
 
+
+    <!-- =====================================================
+         FOOTER
+    ===================================================== -->
+
     <footer class="footer">
+
         <div class="footer-container">
+
+
             <div class="footer-brand">
-                <a href="/" class="brand" style="color: white;">
+
+                <a
+                    href="/"
+                    class="brand"
+                    style="color: white;"
+                >
+
                     <div class="brand-icon">
-                        <i class="fa-solid fa-shield-halved"></i>
+
+                        <i
+                            class="fa-solid fa-shield-halved"
+                        ></i>
+
                     </div>
-                    <span>Stego<span class="brand-highlight">Lab</span></span>
+
+
+                    <span>
+
+                        Stego
+                        <span class="brand-highlight">
+                            Lab
+                        </span>
+
+                    </span>
+
                 </a>
-                <p>Image steganography application for secure message communication.</p>
+
+
+                <p>
+                    Image steganography application
+                    for secure message communication.
+                </p>
+
             </div>
+
+
             <div class="footer-links">
-                <a href="/">Home</a>
-                <a href="/encode">Encode</a>
-                <a href="/decode">Decode</a>
+
+                <a href="/">
+                    Home
+                </a>
+
+                <a href="/encode">
+                    Encode
+                </a>
+
+                <a href="/decode">
+                    Decode
+                </a>
+
             </div>
+
         </div>
+
+
         <div class="footer-bottom">
-            <p>© 2026 StegoLab. Academic Project.</p>
-            <span>Informatics</span>
+
+            <p>
+                © 2026 StegoLab.
+                Academic Project.
+            </p>
+
+            <span>
+                Informatics
+            </span>
+
         </div>
+
     </footer>
 
 </body>
+
 </html>
