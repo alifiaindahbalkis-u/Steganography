@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Secure Image Steganography</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f5f7fb;
+            color: #222;
+        }
+
+        .container {
+            width: 92%;
+            max-width: 1200px;
+            margin: 40px auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 25px;
+        }
+
+        .card h2 {
+            margin-top: 0;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        input[type="file"],
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 15px;
+        }
+
+        textarea {
+            min-height: 140px;
+            resize: vertical;
+        }
+
+        button {
+            width: 100%;
+            padding: 13px;
+            border: none;
+            border-radius: 8px;
+            background: #222;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .error {
+            padding: 15px;
+            border-radius: 8px;
+            background: #f8d7da;
+            border: 1px solid #f5c2c7;
+            color: #842029;
+            margin-bottom: 20px;
+        }
+
+        .success {
+            padding: 15px;
+            border-radius: 8px;
+            background: #d1e7dd;
+            border: 1px solid #badbcc;
+            color: #0f5132;
+            margin-bottom: 20px;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(
+                auto-fit,
+                minmax(180px, 1fr)
+            );
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .metric {
+            padding: 20px;
+            background: #f7f7f7;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .metric h3 {
+            margin-top: 0;
+            font-size: 15px;
+            color: #666;
+        }
+
+        .metric p {
+            margin-bottom: 0;
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(
+                auto-fit,
+                minmax(300px, 1fr)
+            );
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .image-card {
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            padding: 15px;
+            background: #fafafa;
+        }
+
+        .image-card h3 {
+            margin-top: 0;
+        }
+
+        .image-card img {
+            width: 100%;
+            max-height: 400px;
+            object-fit: contain;
+            border-radius: 8px;
+            background: #eee;
+        }
+
+        .image-card p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 350px;
+            margin-top: 20px;
+        }
+
+        .jpeg-section {
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 2px solid #eee;
+        }
+
+        .jpeg-result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .jpeg-info {
+            background: #eef2ff;
+            border-left: 4px solid #444;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+
+        .jpeg-test-button {
+            width: 100%;
+            padding: 13px;
+            margin-top: 5px;
+            border: none;
+            border-radius: 8px;
+            background: #444;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .jpeg-test-button:hover {
+            opacity: 0.9;
+        }
+
+        .download-button {
+            display: inline-block;
+            padding: 11px 18px;
+            margin-top: 15px;
+            border-radius: 8px;
+            background: #222;
+            color: white;
+            text-decoration: none;
+        }
+
+        .download-button:hover {
+            opacity: 0.85;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .navigation a {
+            padding: 10px 18px;
+            border-radius: 8px;
+            background: #222;
+            color: white;
+            text-decoration: none;
+        }
+
+        .navigation a:hover {
+            opacity: 0.85;
+        }
+
+        .note {
+            background: #eef2ff;
+            border-left: 4px solid #444;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 5px;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="container">
+
+
+    <!-- ================================================= -->
+    <!-- HEADER -->
+    <!-- ================================================= -->
+
+    <div class="header">
+
+        <h1>
+            Secure Image Steganography
+        </h1>
+
+        <p>
+            Penyembunyian pesan menggunakan
+            LSB, PRNG, dan AES-GCM
+        </p>
+
+    </div>
+
+
+    <!-- ================================================= -->
+    <!-- FORM ENCODE -->
+    <!-- ================================================= -->
+
+    <div class="card">
+
+        <h2>
+            Encode Message
+        </h2>
+
+
+        {% if error %}
+
+            <div class="error">
+
+                {{ error }}
+
+            </div>
+
+        {% endif %}
+
+
+        <form
+            action="{{ url_for('encode') }}"
+            method="POST"
+            enctype="multipart/form-data"
+        >
+
+
+            <label>
+                Cover Image
+            </label>
+
+            <input
+                type="file"
+                name="image"
+                accept=".png,.bmp"
+                required
+            >
+
+
+            <label>
+                Pesan Rahasia
+            </label>
+
+            <textarea
+                name="message"
+                placeholder="Masukkan pesan yang ingin disembunyikan..."
+                required
+            ></textarea>
+
+
+            <label>
+                Stego-Key
+            </label>
+
+            <input
+                type="text"
+                name="stego_key"
+                placeholder="Masukkan stego-key..."
+                required
+            >
+
+
+            <button type="submit">
+                Encode Message
+            </button>
+
+
+        </form>
+
+    </div>
+
+
+    {% if success %}
+
+
+        <!-- ================================================= -->
+        <!-- SUCCESS -->
+        <!-- ================================================= -->
+
+        <div class="success">
+
+            <strong>
+                Encoding berhasil!
+            </strong>
+
+            <p>
+                Pesan telah dienkripsi dengan AES-GCM
+                dan disisipkan ke dalam gambar menggunakan
+                LSB + PRNG.
+            </p>
+
+        </div>
+
+
+        <!-- ================================================= -->
+        <!-- INFORMASI DATA -->
+        <!-- ================================================= -->
+
+        <div class="card">
+
+            <h2>
+                Informasi Encoding
+            </h2>
+
+
+            <div class="metrics">
+
+
+                <div class="metric">
+
+                    <h3>
+                        Panjang Pesan
+                    </h3>
+
+                    <p>
+                        {{ message_length }}
+                        byte
+                    </p>
+
+                </div>
+
+
+                <div class="metric">
+
+                    <h3>
+                        Data Terenkripsi
+                    </h3>
+
+                    <p>
+                        {{ encrypted_length }}
+                        byte
+                    </p>
+
+                </div>
+
+
+                <div class="metric">
+
+                    <h3>
+                        Kapasitas
+                    </h3>
+
+                    <p>
+                        {{ capacity }}
+                        byte
+                    </p>
+
+                </div>
+
+
+                <div class="metric">
+
+                    <h3>
+                        MSE
+                    </h3>
+
+                    <p>
+                        {{ "%.6f"|format(mse) }}
+                    </p>
+
+                </div>
+
+
+                <div class="metric">
+
+                    <h3>
+                        PSNR
+                    </h3>
+
+                    <p>
+                        {{ "%.2f"|format(psnr) }}
+                        dB
+                    </p>
+
+                </div>
+
+
+            </div>
+
+
+            <div class="note">
+
+                <strong>
+                    PSNR:
+                </strong>
+
+                Nilai PSNR digunakan untuk mengukur
+                perubahan kualitas antara cover image
+                dan stego image.
+
+            </div>
+
+
+        </div>
+
+
+        <!-- ================================================= -->
+        <!-- COVER VS STEGO -->
+        <!-- ================================================= -->
+
+        <div class="card">
+
+            <h2>
+                Cover Image vs Stego Image
+            </h2>
+
+
+            <div class="image-grid">
+
+
+                <!-- COVER -->
+
+                <div class="image-card">
+
+                    <h3>
+                        Cover Image
+                    </h3>
+
+
+                    <img
+                        src="{{ url_for(
+                            'upload_file',
+                            filename=original_filename
+                        ) }}"
+                        alt="Cover Image"
+                    >
+
+
+                    <p>
+                        {{ original_filename }}
+                    </p>
+
+                </div>
+
+
+                <!-- STEGO -->
+
+                <div class="image-card">
+
+                    <h3>
+                        Stego Image
+                    </h3>
+
+
+                    <img
+                        src="{{ url_for(
+                            'output_file',
+                            filename=output_filename
+                        ) }}"
+                        alt="Stego Image"
+                    >
+
+
+                    <p>
+                        {{ output_filename }}
+                    </p>
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+
+        <!-- ================================================= -->
+        <!-- ENHANCED LSB -->
+        <!-- ================================================= -->
+
+        <div class="card">
+
+            <h2>
+                Enhanced LSB
+            </h2>
+
+
+            <p>
+                Visualisasi bit LSB dari stego image.
+                Gambar ini digunakan untuk membantu
+                analisis steganografi secara visual.
+            </p>
+
+
+            <div class="image-grid">
+
+
+                <div class="image-card">
+
+                    <h3>
+                        LSB Plane
+                    </h3>
+
+
+                    <img
+                        src="{{ url_for(
+                            'output_file',
+                            filename=lsb_filename
+                        ) }}"
+                        alt="Enhanced LSB"
+                    >
+
+
+                    <p>
+                        {{ lsb_filename }}
+                    </p>
+
+                </div>
+
+
+            </div>
+
+
+            <div class="note">
+
+                <strong>
+                    Catatan:
+                </strong>
+
+                Enhanced LSB hanya merupakan
+                visualisasi untuk analisis.
+                File ini bukan stego image yang
+                digunakan untuk proses decode.
+
+            </div>
+
+
+        </div>
+
+
+        <!-- ================================================= -->
+        <!-- HISTOGRAM -->
+        <!-- ================================================= -->
+
+        <div class="card">
+
+            <h2>
+                Histogram Cover vs Stego
+            </h2>
+
+
+            <p>
+                Histogram digunakan untuk melihat
+                distribusi nilai pixel pada cover image
+                dan stego image.
+            </p>
+
+
+            <div class="chart-container">
+
+                <canvas id="histogramChart"></canvas>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================================================= -->
+        <!-- JPEG RE-SAVE TEST -->
+        <!-- ================================================= -->
+
+        <div class="card jpeg-section">
+
+            <h2>
+                JPEG Re-save Test
+            </h2>
+
+
+            <p>
+                Pengujian ini menyimpan ulang stego image
+                dari PNG ke JPEG dengan kualitas 75.
+                Tujuannya untuk menguji ketahanan data LSB
+                terhadap kompresi lossy JPEG.
+            </p>
+
+
+            <!-- INFORMASI -->
+
+            <div class="jpeg-info">
+
+                <strong>
+                    Cara Pengujian:
+                </strong>
+
+                <ol>
+
+                    <li>
+                        Stego image disimpan ulang
+                        menjadi JPEG dengan quality 75.
+                    </li>
+
+                    <li>
+                        Masukkan stego-key yang digunakan
+                        saat proses encoding.
+                    </li>
+
+                    <li>
+                        Klik tombol
+                        <strong>
+                            Decode JPEG
+                        </strong>
+                        untuk mencoba mengambil pesan.
+                    </li>
+
+                    <li>
+                        Jika decode gagal, sistem akan
+                        menampilkan penyebab kegagalannya.
+                    </li>
+
+                </ol>
+
+            </div>
+
+
+            <!-- IMAGE PREVIEW -->
+
+            <div class="image-grid">
+
+
+                <!-- STEGO PNG -->
+
+                <div class="image-card">
+
+                    <h3>
+                        Stego PNG
+                    </h3>
+
+
+                    <img
+                        src="{{ url_for(
+                            'output_file',
+                            filename=output_filename
+                        ) }}"
+                        alt="Stego PNG"
+                    >
+
+
+                    <p>
+                        Format:
+                        <strong>
+                            PNG
+                        </strong>
+                    </p>
+
+                </div>
+
+
+                <!-- JPEG -->
+
+                <div class="image-card">
+
+                    <h3>
+                        JPEG Re-save
+                    </h3>
+
+
+                    <img
+                        src="{{ url_for(
+                            'output_file',
+                            filename=jpeg_filename
+                        ) }}"
+                        alt="JPEG Re-save"
+                    >
+
+
+                    <p>
+                        Format:
+                        <strong>
+                            JPEG
+                        </strong>
+                    </p>
+
+
+                    <p>
+                        Quality:
+                        <strong>
+                            75
+                        </strong>
+                    </p>
+
+                </div>
+
+
+            </div>
+
+
+            <!-- JPEG DECODE FORM -->
+
+            <div class="jpeg-result">
+
+                <h3>
+                    Uji Decode JPEG
+                </h3>
+
+
+                <p>
+                    Masukkan stego-key terlebih dahulu.
+                    Sistem tidak akan langsung melakukan
+                    decode sebelum key dimasukkan.
+                </p>
+
+
+                <form
+                    action="{{ url_for('jpeg_test') }}"
+                    method="POST"
+                >
+
+
+                    <input
+                        type="hidden"
+                        name="jpeg_filename"
+                        value="{{ jpeg_filename }}"
+                    >
+
+
+                    <label>
+                        Stego-Key
+                    </label>
+
+
+                    <input
+                        type="text"
+                        name="stego_key"
+                        placeholder="Masukkan stego-key..."
+                        required
+                    >
+
+
+                    <button
+                        type="submit"
+                        class="jpeg-test-button"
+                    >
+                        Decode JPEG
+                    </button>
+
+
+                </form>
+
+
+                <a
+                    href="{{ url_for(
+                        'output_file',
+                        filename=jpeg_filename
+                    ) }}"
+                    target="_blank"
+                    class="download-button"
+                >
+                    Lihat JPEG Test
+                </a>
+
+
+            </div>
+
+
+        </div>
+
+
+        <!-- ================================================= -->
+        <!-- NAVIGATION -->
+        <!-- ================================================= -->
+
+        <div class="navigation">
+
+            <a href="{{ url_for('encode') }}">
+                Encode Lagi
+            </a>
+
+
+            <a href="{{ url_for('decode') }}">
+                Decode Message
+            </a>
+
+
+            <a href="{{ url_for('index') }}">
+                Home
+            </a>
+
+        </div>
+
+
+    {% endif %}
+
+
+</div>
+
+
+<!-- ================================================= -->
+<!-- JAVASCRIPT HISTOGRAM -->
+<!-- ================================================= -->
+
+{% if success %}
+
+<script>
+
+    const coverHistogram =
+        {{ cover_histogram | tojson }};
+
+
+    const stegoHistogram =
+        {{ stego_histogram | tojson }};
+
+
+    const labels =
+        Array.from(
+            { length: 256 },
+            (_, index) => index
+        );
+
+
+    const ctx =
+        document
+            .getElementById(
+                "histogramChart"
+            )
+            .getContext("2d");
+
+
+    new Chart(
+        ctx,
+        {
+
+            type: "line",
+
+            data: {
+
+                labels: labels,
+
+                datasets: [
+
+                    {
+                        label: "Cover Red",
+
+                        data:
+                            coverHistogram.red,
+
+                        borderWidth: 1,
+
+                        pointRadius: 0
+                    },
+
+
+                    {
+                        label: "Stego Red",
+
+                        data:
+                            stegoHistogram.red,
+
+                        borderWidth: 1,
+
+                        pointRadius: 0
+                    },
+
+
+                    {
+                        label: "Cover Green",
+
+                        data:
+                            coverHistogram.green,
+
+                        borderWidth: 1,
+
+                        pointRadius: 0
+                    },
+
+
+                    {
+                        label: "Stego Green",
+
+                        data:
+                            stegoHistogram.green,
+
+                        borderWidth: 1,
+
+                        pointRadius: 0
+                    },
+
+
+                    {
+                        label: "Cover Blue",
+
+                        data:
+                            coverHistogram.blue,
+
+                        borderWidth: 1,
+
+                        pointRadius: 0
+                    },
+
+
+                    {
+                        label: "Stego Blue",
+
+                        data:
+                            stegoHistogram.blue,
+
+                        borderWidth: 1,
+
+                        pointRadius: 0
+                    }
+
+                ]
+
+            },
+
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+                scales: {
+
+                    x: {
+
+                        title: {
+
+                            display: true,
+
+                            text: "Nilai Pixel"
+
+                        }
+
+                    },
+
+
+                    y: {
+
+                        title: {
+
+                            display: true,
+
+                            text: "Jumlah Pixel"
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+        }
+
+    );
+
+</script>
+
+{% endif %}
+
+
+</body>
+
+</html>

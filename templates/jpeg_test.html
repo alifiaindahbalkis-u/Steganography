@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        JPEG Decode Test
+    </title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f5f7fb;
+            color: #222;
+        }
+
+        .container {
+            width: 92%;
+            max-width: 900px;
+            margin: 40px auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow:
+                0 5px 20px
+                rgba(0, 0, 0, 0.08);
+
+            margin-bottom: 25px;
+        }
+
+        .card h2 {
+            margin-top: 0;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 15px;
+        }
+
+        button {
+            width: 100%;
+            padding: 13px;
+            border: none;
+            border-radius: 8px;
+            background: #222;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .error {
+            padding: 18px;
+            border-radius: 10px;
+            background: #f8d7da;
+            border: 1px solid #f5c2c7;
+            color: #842029;
+            margin-top: 20px;
+        }
+
+        .success {
+            padding: 18px;
+            border-radius: 10px;
+            background: #d1e7dd;
+            border: 1px solid #badbcc;
+            color: #0f5132;
+            margin-top: 20px;
+        }
+
+        .message-box {
+            margin-top: 20px;
+            padding: 18px;
+            border-radius: 10px;
+            background: #f7f7f7;
+            border: 1px solid #ddd;
+        }
+
+        .message-box h3 {
+            margin-top: 0;
+        }
+
+        .message {
+            white-space: pre-wrap;
+            word-break: break-word;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        .info {
+            background: #eef2ff;
+            border-left: 4px solid #444;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 5px;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .navigation a {
+            padding: 10px 18px;
+            border-radius: 8px;
+            background: #222;
+            color: white;
+            text-decoration: none;
+        }
+
+        .navigation a:hover {
+            opacity: 0.85;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="container">
+
+    <!-- HEADER -->
+
+    <div class="header">
+
+        <h1>
+            JPEG Decode Test
+        </h1>
+
+        <p>
+            Pengujian ekstraksi pesan dari stego image
+            setelah dilakukan JPEG re-save
+        </p>
+
+    </div>
+
+
+    <!-- FORM DECODE -->
+
+    <div class="card">
+
+        <h2>
+            Decode JPEG
+        </h2>
+
+        <p>
+            Masukkan stego-key yang digunakan saat proses
+            encoding. Sistem akan mencoba membaca data LSB
+            dari JPEG dan mendekripsi pesan menggunakan AES-GCM.
+        </p>
+
+        <form
+            action="{{ url_for('jpeg_test') }}"
+            method="POST"
+        >
+
+            <input
+                type="hidden"
+                name="jpeg_filename"
+                value="{{ jpeg_filename }}"
+            >
+
+            <label>
+                Stego-Key
+            </label>
+
+            <input
+                type="text"
+                name="stego_key"
+                placeholder="Masukkan stego-key..."
+                required
+            >
+
+            <button type="submit">
+                Decode JPEG
+            </button>
+
+        </form>
+
+
+        {% if error %}
+
+            <div class="error">
+
+                <h3>
+                    ❌ Decode JPEG Gagal
+                </h3>
+
+                <p>
+                    {{ error }}
+                </p>
+
+                <div class="info">
+
+                    <strong>
+                        Kemungkinan penyebab:
+                    </strong>
+
+                    <ul>
+
+                        <li>
+                            Stego-key yang dimasukkan salah.
+                        </li>
+
+                        <li>
+                            Data LSB berubah akibat kompresi
+                            lossy JPEG.
+                        </li>
+
+                        <li>
+                            Header data steganografi tidak dapat
+                            dibaca dengan benar.
+                        </li>
+
+                        <li>
+                            Data terenkripsi tidak dapat
+                            didekripsi menggunakan key tersebut.
+                        </li>
+
+                    </ul>
+
+                </div>
+
+            </div>
+
+        {% endif %}
+
+
+        {% if success %}
+
+            <div class="success">
+
+                <h3>
+                    ✅ Decode JPEG Berhasil
+                </h3>
+
+                <p>
+                    Data berhasil diekstrak dari JPEG dan
+                    didekripsi menggunakan stego-key.
+                </p>
+
+            </div>
+
+
+            <div class="message-box">
+
+                <h3>
+                    Pesan Hasil Ekstraksi
+                </h3>
+
+                <div class="message">
+                    {{ extracted_message }}
+                </div>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- INFORMASI -->
+
+    <div class="card">
+
+        <h2>
+            Informasi Pengujian
+        </h2>
+
+        <div class="info">
+
+            <p>
+                <strong>File JPEG:</strong>
+                {{ jpeg_filename }}
+            </p>
+
+            <p>
+                Proses pengujian menggunakan JPEG yang telah
+                disimpan ulang dengan kualitas 75.
+            </p>
+
+            <p>
+                Karena JPEG menggunakan kompresi lossy,
+                nilai pixel dapat berubah sehingga bit LSB
+                yang sebelumnya digunakan untuk menyimpan
+                pesan dapat ikut berubah.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- NAVIGATION -->
+
+    <div class="navigation">
+
+        <a href="{{ url_for('encode') }}">
+            Kembali ke Encode
+        </a>
+
+        <a href="{{ url_for('decode') }}">
+            Decode PNG/BMP
+        </a>
+
+        <a href="{{ url_for('index') }}">
+            Home
+        </a>
+
+    </div>
+
+</div>
+
+</body>
+
+</html>

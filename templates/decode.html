@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Decode Message - Secure Steganography</title>
+</head>
+
+<body>
+
+    <h1>Decode Message</h1>
+
+    <p>
+        Mengambil pesan rahasia dari stego image menggunakan
+        LSB dan AES-GCM.
+    </p>
+
+    <hr>
+
+
+    {% if error %}
+
+        <div>
+            <strong>Error:</strong>
+            {{ error }}
+        </div>
+
+        <hr>
+
+    {% endif %}
+
+
+    <form action="/decode" method="POST" enctype="multipart/form-data">
+
+        <label for="image">
+            <strong>Stego Image</strong>
+        </label>
+
+        <br>
+
+        <input
+            type="file"
+            id="image"
+            name="image"
+            accept=".png,.bmp"
+            required
+        >
+
+        <br>
+        <br>
+
+
+        <label for="stego_key">
+            <strong>Stego-Key</strong>
+        </label>
+
+        <br>
+
+        <input
+            type="password"
+            id="stego_key"
+            name="stego_key"
+            placeholder="Masukkan stego-key"
+            required
+        >
+
+        <br>
+        <br>
+
+        <button type="submit">
+            Decode Message
+        </button>
+
+    </form>
+
+
+    {% if success %}
+
+        <hr>
+
+        <h2>Decoding Berhasil</h2>
+
+        <p>
+            Pesan berhasil diekstraksi dan didekripsi.
+        </p>
+
+        <h3>Pesan Rahasia:</h3>
+
+        <textarea
+            rows="8"
+            cols="60"
+            readonly
+        >{{ message }}</textarea>
+
+        <p>
+            <strong>Stego Image:</strong>
+            {{ filename }}
+        </p>
+
+    {% endif %}
+
+
+    <hr>
+
+    <a href="/">
+        Kembali ke halaman utama
+    </a>
+
+</body>
+
+</html>

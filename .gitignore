@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environment
+venv/
+.venv/
+
+# Python cache
+.pytest_cache/
+.mypy_cache/
+
+# Flask
+instance/
+
+# Environment / secrets
+.env
+.env.*
+
+# Uploaded files
+uploads/*
+
+# Generated outputs
+outputs/*
+
+# Experiment results
+experiments/results/*
+
+# Cache
+pip-cache/
+temp/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Python build
+build/
+dist/
+*.egg-info/
