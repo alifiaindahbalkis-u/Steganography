@@ -146,12 +146,24 @@ def encode():
         image_file.save(input_path)
 
         # -------------------------------------------------
-        # BUKA COVER IMAGE
+        # BUKA COVER IMAGE & SIMPAN ALPHA
         # -------------------------------------------------
+        img = Image.open(input_path)
+        has_alpha = False
+        alpha_channel = None
 
-        original_image = Image.open(
-            input_path
-        ).convert("RGB")
+        # Jika gambar transparan, simpan layer alpha-nya
+        if img.mode in ('RGBA', 'LA') or (img.mode == 'P' and 'transparency' in img.info):
+            has_alpha = True
+            img = img.convert("RGBA")
+            alpha_channel = img.split()[-1] 
+            
+            # Buat latar putih sementara sebagai wadah LSB
+            background = Image.new("RGB", img.size, (255, 255, 255))
+            background.paste(img, mask=alpha_channel)
+            original_image = background
+        else:
+            original_image = img.convert("RGB")
 
         # -------------------------------------------------
         # HITUNG KAPASITAS
@@ -190,7 +202,6 @@ def encode():
         # -------------------------------------------------
         # SISIPKAN DATA DENGAN LSB + PRNG
         # -------------------------------------------------
-
         stego_image = encode_data(
             original_image,
             encrypted_message,
@@ -198,25 +209,31 @@ def encode():
         )
 
         # -------------------------------------------------
+        # KEMBALIKAN TRANSPARANSI (JIKA ADA)
+        # -------------------------------------------------
+        final_output_image = stego_image
+        if has_alpha and alpha_channel:
+            # Pisahkan RGB yang sudah disisipi pesan, gabung kembali dengan Alpha
+            r, g, b = stego_image.split()
+            final_output_image = Image.merge("RGBA", (r, g, b, alpha_channel))
+
+        # -------------------------------------------------
         # NAMA FILE STEGO
         # -------------------------------------------------
-
         output_filename = (
             "stego_"
             + os.path.splitext(filename)[0]
             + ".png"
         )
-
         output_path = os.path.join(
             app.config["OUTPUT_FOLDER"],
             output_filename
         )
 
         # -------------------------------------------------
-        # SIMPAN STEGO IMAGE SEBAGAI PNG
+        # SIMPAN STEGO IMAGE SEBAGAI PNG (TRANSPARAN)
         # -------------------------------------------------
-
-        stego_image.save(
+        final_output_image.save(
             output_path,
             format="PNG"
         )
