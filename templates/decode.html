@@ -1,0 +1,198 @@
+<!-- templates/decode.html -->
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decode - StegoLab</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <style>
+        .form-wrapper {
+            max-width: 650px;
+            margin: 0 auto;
+            transform: none; 
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 22px;
+        }
+        .form-group label {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--dark);
+        }
+        .form-control {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-family: inherit;
+            background: white;
+            color: var(--text);
+            transition: 0.25s ease;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+        .alert {
+            padding: 14px 18px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .alert-error {
+            background: var(--orange-light);
+            color: var(--orange);
+            border: 1px solid rgba(234, 88, 12, 0.2);
+        }
+        .alert-success {
+            background: var(--success-light);
+            color: var(--success);
+            border: 1px solid rgba(22, 163, 74, 0.2);
+        }
+        .extracted-box {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            color: var(--dark);
+            line-height: 1.8;
+            margin-bottom: 25px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="/" class="brand">
+                <div class="brand-icon">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <span>Stego<span class="brand-highlight">Lab</span></span>
+            </a>
+            <nav class="nav-links">
+                <a href="/">Home</a>
+                <a href="/encode">Encode</a>
+                <a href="/decode" class="active">Decode</a>
+            </nav>
+            <a href="/encode" class="nav-button">
+                Get Started
+                <i class="fa-solid fa-arrow-right"></i>
+            </a>
+        </div>
+    </header>
+
+    <main>
+        <section class="how-section" style="padding-top: 60px;">
+            <div class="section-container">
+                
+                <div class="image-card-main form-wrapper">
+                    <div class="window-header">
+                        <div class="window-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                        <span class="window-title">Decoder Workspace</span>
+                    </div>
+
+                    <div class="visual-content">
+                        <div class="section-heading" style="text-align: center; margin-bottom: 35px;">
+                            <span class="section-label">EXTRACTION PROCESS</span>
+                            <h2>Extract Your <span>Data</span></h2>
+                            <p style="margin: 0 auto;">Retrieve the hidden message from a stego image.</p>
+                        </div>
+
+                        {% if error %}
+                        <div class="alert alert-error">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <div>{{ error }}</div>
+                        </div>
+                        {% endif %}
+
+                        {% if success %}
+                        <div class="alert alert-success">
+                            <i class="fa-solid fa-circle-check"></i>
+                            <div>Message extracted and decrypted successfully!</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label style="color: var(--primary); font-size: 14px;"><i class="fa-solid fa-unlock-keyhole"></i> Secret Message Result:</label>
+                            <div class="extracted-box">{{ message }}</div>
+                        </div>
+
+                        <a href="/decode" class="btn btn-secondary" style="width: 100%; text-align: center;">
+                            Decode Another Image
+                        </a>
+                        {% else %}
+                        
+                        <!-- Form Decode -->
+                        <form action="/decode" method="post" enctype="multipart/form-data">
+                            <div class="form-group">
+                                <label><i class="fa-solid fa-image" style="color: var(--primary); margin-right: 5px;"></i> Stego Image (PNG / BMP)</label>
+                                <input type="file" name="image" class="form-control" accept=".png, .bmp" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label><i class="fa-solid fa-key" style="color: var(--primary); margin-right: 5px;"></i> Stego Key (Password)</label>
+                                <input type="password" name="stego_key" class="form-control" placeholder="Enter the exact key used for encoding..." required>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px; font-size: 15px; padding: 15px;">
+                                <i class="fa-solid fa-magnifying-glass"></i> Extract Message
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <a href="/" class="brand" style="color: white;">
+                    <div class="brand-icon">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <span>Stego<span class="brand-highlight">Lab</span></span>
+                </a>
+                <p>Image steganography application for secure message communication.</p>
+            </div>
+            <div class="footer-links">
+                <a href="/">Home</a>
+                <a href="/encode">Encode</a>
+                <a href="/decode">Decode</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 StegoLab. Academic Project.</p>
+            <span>Informatics</span>
+        </div>
+    </footer>
+
+</body>
+</html>

@@ -1,0 +1,314 @@
+<!-- templates/jpeg_test.html -->
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JPEG Decode Test - StegoLab</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
+    <!-- CSS Utama -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <style>
+        .form-wrapper {
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            transform: none; 
+        }
+
+        .analysis-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .analysis-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 12px;
+        }
+
+        .analysis-desc {
+            font-size: 14px;
+            color: var(--muted);
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 22px;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-family: inherit;
+            background: white;
+            color: var(--text);
+            transition: 0.25s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        .alert {
+            padding: 18px 22px;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            line-height: 1.5;
+        }
+
+        .alert-error {
+            background: var(--orange-light);
+            color: var(--orange);
+            border: 1px solid rgba(234, 88, 12, 0.2);
+        }
+
+        .alert-success {
+            background: var(--success-light);
+            color: var(--success);
+            border: 1px solid rgba(22, 163, 74, 0.2);
+        }
+
+        .info-box {
+            background: var(--primary-light);
+            border-left: 4px solid var(--primary);
+            padding: 20px;
+            font-size: 13px;
+            color: var(--text);
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            margin-top: 25px;
+            line-height: 1.6;
+        }
+
+        .info-box ul {
+            margin-top: 10px;
+            margin-left: 20px;
+            color: var(--muted);
+        }
+        
+        .info-box ul li {
+            margin-bottom: 6px;
+        }
+
+        .message-box {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            color: var(--dark);
+            line-height: 1.8;
+            margin-top: 25px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 15px;
+            background: #f1f5f9;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 25px;
+            border: 1px solid #e2e8f0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="/" class="brand">
+                <div class="brand-icon">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <span>Stego<span class="brand-highlight">Lab</span></span>
+            </a>
+            <nav class="nav-links">
+                <a href="/">Home</a>
+                <a href="/encode">Encode</a>
+                <a href="/decode">Decode</a>
+            </nav>
+            <a href="/encode" class="nav-button">
+                Get Started <i class="fa-solid fa-arrow-right"></i>
+            </a>
+        </div>
+    </header>
+
+    <main>
+        <section class="how-section" style="padding-top: 60px; padding-bottom: 80px; background: var(--background);">
+            <div class="section-container">
+                
+                <div class="image-card-main form-wrapper">
+                    <div class="window-header">
+                        <div class="window-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                        <span class="window-title">JPEG Extraction Test</span>
+                    </div>
+
+                    <div class="visual-content">
+                        
+                        <div class="section-heading" style="text-align: center; margin: 0 auto 35px auto;">
+                            <span class="section-label">ANALYSIS TEST</span>
+                            <h2>JPEG <span>Decode Test</span></h2>
+                            <p style="margin: 0 auto; max-width: 500px;">Pengujian ekstraksi pesan dari stego image setelah dilakukan kompresi (JPEG re-save).</p>
+                        </div>
+
+                        <!-- START: HASIL TEST -->
+                        {% if error %}
+                        <div class="alert alert-error">
+                            <i class="fa-solid fa-circle-xmark" style="font-size: 18px; margin-top: 2px;"></i>
+                            <div style="width: 100%;"> <!-- Tambahkan style ini di sini -->
+                                <strong style="display: block; margin-bottom: 5px; font-size: 15px;">Decode JPEG Gagal</strong>
+                                {{ error }}
+        
+                                <div class="info-box" style="margin-top: 15px; background: rgba(255, 255, 255, 0.6); border-color: var(--orange); padding: 15px;">
+                                    <strong style="color: var(--dark);">Kemungkinan penyebab:</strong>
+                                    <ul style="color: var(--text); margin-bottom: 0;">
+                                        <li>Stego-key yang dimasukkan salah.</li>
+                                        <li>Data LSB hancur/berubah akibat kompresi lossy format JPEG.</li>
+                                        <li>Header data steganografi tidak dapat dibaca secara utuh.</li>
+                                        <li>Data terenkripsi tidak dapat didekripsi menggunakan key tersebut.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+
+                        {% if success %}
+                        <div class="alert alert-success">
+                            <i class="fa-solid fa-circle-check" style="font-size: 18px; margin-top: 2px;"></i>
+                            <div>
+                                <strong style="display: block; margin-bottom: 5px; font-size: 15px;">Decode JPEG Berhasil</strong>
+                                Data berhasil diekstrak secara utuh dari JPEG dan didekripsi menggunakan stego-key. Ini menunjukkan bahwa modifikasi LSB Anda bertahan dari kompresi kualitas 75.
+                            </div>
+                        </div>
+
+                        <h4 style="font-size: 15px; margin-top: 30px; margin-bottom: 10px; color: var(--dark);"><i class="fa-solid fa-unlock-keyhole" style="color: var(--primary);"></i> Pesan Hasil Ekstraksi</h4>
+                        <div class="message-box">
+                            {{ extracted_message }}
+                        </div>
+                        {% endif %}
+                        <!-- END: HASIL TEST -->
+
+
+                        <!-- START: FORM TEST (Hanya tampil jika belum dicoba atau ingin coba lagi) -->
+                        <div class="analysis-card" style="margin-top: 40px; box-shadow: none; background: #fafcff;">
+                            <h3 class="analysis-title" style="font-size: 16px;"><i class="fa-solid fa-file-shield" style="color: var(--primary); margin-right: 8px;"></i> Coba Ekstraksi</h3>
+                            <p class="analysis-desc" style="font-size: 13px; margin-bottom: 20px;">Masukkan stego-key yang digunakan saat proses encoding. Sistem akan mencoba membaca data LSB dari JPEG dan mendekripsi pesan.</p>
+
+                            <div class="file-info">
+                                <i class="fa-regular fa-image" style="color: var(--muted); font-size: 18px;"></i>
+                                <span>Target File: {{ jpeg_filename }}</span>
+                            </div>
+
+                            <form action="{{ url_for('jpeg_test') }}" method="POST">
+                                <input type="hidden" name="jpeg_filename" value="{{ jpeg_filename }}">
+                                {% if original_message %}
+                                <input type="hidden" name="original_message" value="{{ original_message }}">
+                                {% endif %}
+
+                                <div class="form-group" style="margin-bottom: 15px;">
+                                    <label>Stego-Key</label>
+                                    <input type="text" name="stego_key" class="form-control" placeholder="Masukkan stego-key..." required>
+                                </div>
+
+                                <button type="submit" class="btn btn-secondary" style="width: 100%;">
+                                    <i class="fa-solid fa-magnifying-glass"></i> Decode JPEG
+                                </button>
+                            </form>
+                        </div>
+                        <!-- END: FORM TEST -->
+
+
+                        <!-- INFORMASI TEKNIS -->
+                        <div class="info-box" style="border-left-color: var(--muted); background: #f1f5f9; margin-top: 35px;">
+                            <strong style="display: block; margin-bottom: 10px; color: var(--dark);"><i class="fa-solid fa-circle-info"></i> Catatan Teknis Pengujian</strong>
+                            <p style="margin-bottom: 10px; color: var(--muted);">Proses pengujian ini menggunakan file JPEG yang telah disimpan ulang dengan parameter kualitas (quality) setinggi 75.</p>
+                            <p style="margin: 0; color: var(--muted);">Karena JPEG secara inheren menggunakan algoritma kompresi <em>lossy</em> (menghilangkan detail yang dianggap tidak penting oleh mata manusia), nilai pixel seringkali berubah. Hal ini dapat menyebabkan bit LSB yang digunakan untuk menyimpan pesan Anda ikut rusak atau bergeser.</p>
+                        </div>
+
+
+                        <!-- NAVIGASI KEMBALI -->
+                        <div style="display: flex; gap: 15px; margin-top: 40px; border-top: 1px solid var(--border); padding-top: 30px;">
+                            <a href="{{ url_for('encode') }}" class="btn btn-primary" style="flex: 1; text-align: center;">
+                                <i class="fa-solid fa-arrow-left"></i> Kembali ke Encode
+                            </a>
+                            <a href="{{ url_for('decode') }}" class="btn btn-secondary" style="flex: 1; text-align: center;">
+                                <i class="fa-solid fa-unlock"></i> Decode Normal (PNG)
+                            </a>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <a href="/" class="brand" style="color: white;">
+                    <div class="brand-icon">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <span>Stego<span class="brand-highlight">Lab</span></span>
+                </a>
+                <p>Image steganography application for secure message communication.</p>
+            </div>
+            <div class="footer-links">
+                <a href="/">Home</a>
+                <a href="/encode">Encode</a>
+                <a href="/decode">Decode</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 StegoLab. Academic Project.</p>
+            <span>Informatics</span>
+        </div>
+    </footer>
+
+</body>
+</html>
