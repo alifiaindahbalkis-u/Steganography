@@ -637,8 +637,11 @@ textarea {
 
 /* Main visual */
 
-.image-card-main {
+/* =========================================================
+   MAIN VISUAL
+========================================================= */
 
+.image-card-main {
     position: relative;
 
     width: 440px;
@@ -654,11 +657,11 @@ textarea {
     box-shadow: var(--shadow-lg);
 
     overflow: hidden;
-
+    
     z-index: 2;
 
-    transform: rotate(1.5deg);
-
+    /* LURUS */
+    transform: none !important;
 }
 
 
