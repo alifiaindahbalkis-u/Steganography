@@ -74,25 +74,41 @@ from steganography.jpeg_test import (
 # KONFIGURASI APLIKASI
 # ============================================================
 
+# ============================================================
+# KONFIGURASI APLIKASI
+# ============================================================
+
 load_dotenv()
 
-APP_ENV = os.environ.get("APP_ENV", "development").lower()
-IS_PRODUCTION = APP_ENV == "production" or os.environ.get("VERCEL") == "1"
+APP_ENV = os.environ.get(
+    "APP_ENV",
+    "development"
+).lower()
+
+IS_PRODUCTION = (
+    APP_ENV == "production"
+    or os.environ.get("VERCEL") == "1"
+)
+
+# Rate limit storage
+# Jika RATELIMIT_STORAGE_URI belum tersedia,
+# gunakan memory storage.
 RATELIMIT_STORAGE_URI = os.environ.get(
     "RATELIMIT_STORAGE_URI",
     "memory://"
 )
 
-if IS_PRODUCTION and not RATELIMIT_STORAGE_URI.startswith(("redis://", "rediss://")):
+flask_secret_key = os.environ.get(
+    "FLASK_SECRET_KEY"
+)
+
+if not flask_secret_key:
     raise RuntimeError(
-        "Production requires RATELIMIT_STORAGE_URI to point to shared Redis."
+        "FLASK_SECRET_KEY must be configured."
     )
 
-flask_secret_key = os.environ.get("FLASK_SECRET_KEY")
-if not flask_secret_key:
-    raise RuntimeError("FLASK_SECRET_KEY must be configured.")
-
 app = Flask(__name__)
+
 app.config.update(
     SECRET_KEY=flask_secret_key,
     MAX_CONTENT_LENGTH=50 * 1024 * 1024,
@@ -107,7 +123,6 @@ limiter = Limiter(
     app=app,
     default_limits=[],
     storage_uri=RATELIMIT_STORAGE_URI,
-    strategy="fixed-window",
 )
 
 
