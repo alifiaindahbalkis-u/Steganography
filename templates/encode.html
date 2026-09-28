@@ -3,419 +3,214 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
     <title>Encode - StegoLab</title>
 
     <!-- Google Font -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+    >
+
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
 
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
 
     <!-- CSS Utama -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
 
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
+
         /* =========================================================
-           RESET & LAYOUT BASE
+           FIX UTAMA AGAR TIDAK MENGSOL
         ========================================================= */
+
         .encode-page,
         .encode-page *,
-        .workspace-card,
-        .item-card {
+        .image-card-main,
+        .image-card-main *,
+        .form-wrapper,
+        .analysis-card {
             transform: none !important;
             rotate: 0deg !important;
         }
 
+        .image-card-main {
+            position: relative !important;
+            left: auto !important;
+            right: auto !important;
+            top: auto !important;
+            bottom: auto !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+            float: none !important;
+        }
+
+        .image-card-main:hover,
+        .image-card-main:focus {
+            transform: none !important;
+            rotate: 0deg !important;
+        }
+
+        /* =========================================================
+           GENERAL
+        ========================================================= */
+
         .encode-page {
             width: 100%;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            background-color: #f8fafc;
+            max-width: 100%;
+            transform: none !important;
+            rotate: 0deg !important;
+            perspective: none !important;
         }
 
         .encode-page .section-container {
+            transform: none !important;
+            rotate: 0deg !important;
+            perspective: none !important;
+        }
+
+        .form-wrapper {
             width: 100%;
-            max-width: 960px;
+            max-width: 1050px;
             margin: 0 auto;
-            padding: 40px 20px;
+            transform: none !important;
+            rotate: 0deg !important;
         }
 
-        /* =========================================================
-           MAIN WORKSPACE CONTAINER CARD (PERSIS SEPERTI DECODE)
-        ========================================================= */
-        .workspace-card {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
-            overflow: hidden;
-            width: 100%;
-        }
-
-        /* Header Window Workspace */
-        .workspace-header {
-            background-color: #f8fafc;
-            border-bottom: 1px solid #e2e8f0;
-            padding: 12px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .window-dots {
-            display: flex;
-            gap: 6px;
-        }
-
-        .window-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background-color: #cbd5e1;
-        }
-
-        .workspace-title-bar {
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: #94a3b8;
-            letter-spacing: 0.5px;
-        }
-
-        /* Body Workspace Wrapper */
-        .workspace-body {
-            padding: 40px 48px;
-        }
-
-        /* Header Title Inside Box */
-        .workspace-intro {
-            text-align: center;
-            margin-bottom: 35px;
-        }
-
-        .workspace-badge {
-            font-size: 0.75rem;
-            font-weight: 800;
-            color: #2563eb;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            margin-bottom: 8px;
-            display: block;
-        }
-
-        .workspace-intro h2 {
-            font-size: 2rem;
-            font-weight: 800;
-            color: #0f172a;
-            margin-bottom: 8px;
-        }
-
-        .workspace-intro h2 span {
-            color: #2563eb;
-        }
-
-        .workspace-intro p {
-            color: #64748b;
-            font-size: 0.9rem;
-        }
-
-        /* =========================================================
-           COUNT SELECTOR (1-5 GAMBAR)
-        ========================================================= */
-        .selector-label {
-            font-size: 0.85rem;
-            font-weight: 700;
-            color: #1e293b;
-            margin-bottom: 10px;
-            display: block;
-        }
-
-        .count-selector-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 12px;
-            margin-bottom: 30px;
-        }
-
-        .btn-select-count {
-            background: #ffffff;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 10px;
-            font-weight: 700;
-            font-size: 0.95rem;
-            color: #334155;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-align: center;
-        }
-
-        .btn-select-count:hover {
-            border-color: #cbd5e1;
-            background: #f8fafc;
-        }
-
-        .btn-select-count.active {
-            border-color: #2563eb;
-            background: #eff6ff;
-            color: #2563eb;
-            box-shadow: 0 0 0 1px #2563eb;
-        }
-
-        /* =========================================================
-           ITEM CARDS (UNTUK BATCH)
-        ========================================================= */
-        .item-card {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 24px;
+        .analysis-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 25px;
             margin-bottom: 25px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+            box-shadow: var(--shadow-sm);
         }
 
-        .item-card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: 12px;
-            margin-bottom: 18px;
-            border-bottom: 1px solid #f1f5f9;
+        .analysis-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 10px;
         }
 
-        .item-card-title {
-            font-size: 1rem;
-            font-weight: 800;
-            color: #0f172a;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .item-card-badge {
-            font-size: 0.75rem;
-            font-weight: 800;
-            color: #2563eb;
-            letter-spacing: 0.5px;
+        .analysis-desc {
+            font-size: 13px;
+            color: var(--muted);
+            line-height: 1.7;
+            margin-bottom: 20px;
         }
 
         /* =========================================================
-           FORM ELEMENTS & TOGGLES
+           FORM
         ========================================================= */
+
         .form-group {
             display: flex;
             flex-direction: column;
             gap: 8px;
-            margin-bottom: 20px;
+            margin-bottom: 22px;
         }
 
         .form-group label {
-            font-size: 0.85rem;
+            font-size: 13px;
             font-weight: 700;
-            color: #1e293b;
-        }
-
-        .msg-type-toggle {
-            display: flex;
-            gap: 8px;
-        }
-
-        .btn-toggle-type {
-            background: #f1f5f9;
-            border: 1px solid #cbd5e1;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 0.78rem;
-            font-weight: 600;
-            color: #475569;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .btn-toggle-type.active {
-            background: #2563eb;
-            color: #ffffff;
-            border-color: #2563eb;
+            color: var(--dark);
         }
 
         .form-control {
             width: 100%;
             box-sizing: border-box;
-            padding: 12px 16px;
-            border: 1.5px solid #cbd5e1;
-            border-radius: 8px;
-            font-size: 0.9rem;
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
             font-family: inherit;
-            background: #ffffff;
-            color: #334155;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            background: white;
+            color: var(--text);
+            transition: 0.25s ease;
         }
 
         .form-control:focus {
             outline: none;
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
         }
 
         textarea.form-control {
             resize: vertical;
-            min-height: 90px;
-            line-height: 1.5;
-        }
-
-        /* LSB Mode Buttons (1-bit s/d 4-bit) */
-        .lsb-selector-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin-top: 4px;
-        }
-
-        .btn-lsb-mode {
-            background: #ffffff;
-            border: 1.5px solid #cbd5e1;
-            border-radius: 8px;
-            padding: 10px;
-            font-weight: 700;
-            font-size: 0.875rem;
-            color: #334155;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.2s ease;
-        }
-
-        .btn-lsb-mode:hover {
-            border-color: #94a3b8;
-        }
-
-        .btn-lsb-mode.active {
-            border-color: #2563eb;
-            background: #eff6ff;
-            color: #2563eb;
-            box-shadow: 0 0 0 1px #2563eb;
-        }
-
-        .checkbox-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 8px;
-            cursor: pointer;
-            font-size: 0.825rem;
-            color: #64748b;
-        }
-
-        .checkbox-container input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
-            accent-color: #2563eb;
-            cursor: pointer;
+            min-height: 110px;
         }
 
         /* =========================================================
-           ACTION BAR & SUBMIT BUTTON
+           ALERT
         ========================================================= */
-        .action-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 25px;
-            padding-top: 15px;
-        }
 
-        .btn-submit-all {
-            background-color: #2563eb;
-            color: white;
-            border: none;
-            padding: 14px 32px;
-            border-radius: 8px;
-            font-weight: 700;
-            font-size: 0.95rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: background 0.2s ease, transform 0.1s ease;
-        }
-
-        .btn-submit-all:hover {
-            background-color: #1d4ed8;
-        }
-
-        /* =========================================================
-           ANALYSIS CARDS (RESULT STATE)
-        ========================================================= */
-        .analysis-card {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 24px;
+        .alert {
+            padding: 14px 18px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 600;
             margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 10px;
-            margin: 20px 0;
+        .alert-error {
+            background: var(--orange-light);
+            color: var(--orange);
+            border: 1px solid rgba(234, 88, 12, 0.2);
         }
 
-        .metric-box {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            padding: 12px 8px;
-            border-radius: 8px;
-            text-align: center;
+        .alert-success {
+            background: var(--success-light);
+            color: var(--success);
+            border: 1px solid rgba(22, 163, 74, 0.2);
         }
 
-        .metric-box strong {
-            display: block;
-            font-size: 0.65rem;
-            color: #64748b;
-            text-transform: uppercase;
-        }
-
-        .metric-box span {
-            font-size: 1.05rem;
-            font-weight: 800;
-            color: #0f172a;
-        }
-
-        .table-wrapper {
-            overflow-x: auto;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            margin-top: 15px;
-        }
-
-        .comparison-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.85rem;
-        }
-
-        .comparison-table th, .comparison-table td {
-            padding: 10px 12px;
-            border-bottom: 1px solid #e2e8f0;
-        }
+        /* =========================================================
+           GRID
+        ========================================================= */
 
         .grid-2 {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-top: 15px;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
         }
 
+        /* =========================================================
+           IMAGE PREVIEW
+        ========================================================= */
+
         .image-preview-container {
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 10px;
             background: #f8fafc;
         }
 
@@ -424,39 +219,224 @@
             justify-content: center;
             align-items: center;
             min-height: 180px;
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
+            border-radius: 4px;
+            padding: 10px;
+            background-color: white;
+
+            background-image:
+                linear-gradient(
+                    45deg,
+                    #e2e8f0 25%,
+                    transparent 25%
+                ),
+                linear-gradient(
+                    -45deg,
+                    #e2e8f0 25%,
+                    transparent 25%
+                ),
+                linear-gradient(
+                    45deg,
+                    transparent 75%,
+                    #e2e8f0 75%
+                ),
+                linear-gradient(
+                    -45deg,
+                    transparent 75%,
+                    #e2e8f0 75%
+                );
+
+            background-size: 20px 20px;
+
+            background-position:
+                0 0,
+                0 10px,
+                10px -10px,
+                -10px 0;
         }
 
         .image-preview-background img {
+            display: block;
             max-width: 100%;
-            max-height: 180px;
             object-fit: contain;
         }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-            .workspace-body {
-                padding: 24px 18px;
+        /* =========================================================
+           METRICS
+        ========================================================= */
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            margin-bottom: 22px;
+        }
+
+        .metric-box {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            padding: 15px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            text-align: center;
+        }
+
+        .metric-box strong {
+            font-size: 10px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .metric-box span {
+            font-size: 17px;
+            font-weight: 800;
+            color: var(--dark);
+        }
+
+        /* =========================================================
+           INFO
+        ========================================================= */
+
+        .info-box {
+            background: var(--primary-light);
+            border-left: 4px solid var(--primary);
+            padding: 15px;
+            font-size: 13px;
+            color: var(--text);
+            margin-top: 20px;
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            line-height: 1.7;
+        }
+
+        .small-note {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 10px;
+            line-height: 1.6;
+        }
+
+        /* =========================================================
+           TABLE
+        ========================================================= */
+
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .comparison-table th {
+            background: #f8fafc;
+            color: var(--dark);
+            font-weight: 700;
+            padding: 14px 12px;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        .comparison-table td {
+            padding: 14px 12px;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .comparison-table tr.selected-row {
+            background: var(--primary-light);
+        }
+
+        .selected-badge {
+            display: inline-block;
+            margin-left: 6px;
+            padding: 3px 7px;
+            border-radius: 999px;
+            font-size: 9px;
+            font-weight: 800;
+            background: var(--primary);
+            color: white;
+        }
+
+        .status-pass {
+            color: #15803d;
+            font-weight: 800;
+        }
+
+        .status-fail {
+            color: #dc2626;
+            font-weight: 800;
+        }
+
+        /* =========================================================
+           ACTION
+        ========================================================= */
+
+        .action-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .action-row .btn {
+            flex: 1;
+            min-width: 220px;
+            text-align: center;
+        }
+
+        /* =========================================================
+           RESPONSIVE
+        ========================================================= */
+
+        @media (max-width: 1000px) {
+
+            .metrics-grid {
+                grid-template-columns: repeat(3, 1fr);
             }
-            .grid-2, .metrics-grid {
+
+        }
+
+        @media (max-width: 768px) {
+
+            .grid-2 {
                 grid-template-columns: 1fr;
             }
-            .lsb-selector-grid {
-                grid-template-columns: repeat(2, 1fr);
+
+            .metrics-grid {
+                grid-template-columns: 1fr 1fr;
             }
-            .action-bar {
+
+            .analysis-card {
+                padding: 20px;
+            }
+
+            .action-row {
                 flex-direction: column;
-                gap: 15px;
-                align-items: stretch;
             }
-            .btn-submit-all {
-                justify-content: center;
+
+            .action-row .btn {
+                min-width: 100%;
             }
+
         }
+
+        @media (max-width: 500px) {
+
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+
+        }
+
     </style>
+
 </head>
+
 
 <body>
 
@@ -465,389 +445,1464 @@
     <!-- =========================================================
          NAVBAR
     ========================================================== -->
+
     <header class="navbar">
+
         <div class="nav-container">
-            <a href="/" class="brand">
+
+            <a
+                href="/"
+                class="brand"
+            >
+
                 <div class="brand-icon">
                     <i class="fa-solid fa-shield-halved"></i>
                 </div>
-                <span>Stego<span class="brand-highlight">Lab</span></span>
+
+                <span>
+                    Stego
+                    <span class="brand-highlight">
+                        Lab
+                    </span>
+                </span>
+
             </a>
+
 
             <nav class="nav-links">
-                <a href="/">Home</a>
-                <a href="/encode" class="active">Encode</a>
-                <a href="/decode">Decode</a>
+
+                <a href="/">
+                    Home
+                </a>
+
+                <a
+                    href="/encode"
+                    class="active"
+                >
+                    Encode
+                </a>
+
+                <a href="/decode">
+                    Decode
+                </a>
+
             </nav>
 
-            <a href="/decode" class="nav-button">
-                Get Started <i class="fa-solid fa-arrow-right"></i>
+
+            <a
+                href="/encode"
+                class="nav-button"
+            >
+
+                Get Started
+
+                <i class="fa-solid fa-arrow-right"></i>
+
             </a>
+
         </div>
+
     </header>
 
+
     <!-- =========================================================
-         MAIN WORKSPACE CONTAINER
+         MAIN
     ========================================================== -->
-    <main style="flex: 1;">
-        <section class="section-container">
 
-            <!-- WORKSPACE BOX CARD -->
-            <div class="workspace-card">
-                
-                <!-- HEADER BAR (DECORATIVE BROWSER WINDOW) -->
-                <div class="workspace-header">
-                    <div class="window-dots">
-                        <div class="window-dot"></div>
-                        <div class="window-dot"></div>
-                        <div class="window-dot"></div>
+    <main>
+
+        <section
+            class="how-section"
+            style="
+                padding-top: 40px;
+                background: var(--background);
+            "
+        >
+
+            <div class="section-container">
+
+                {% if not success %}
+
+                <!-- =================================================
+                     FORM INPUT
+                ================================================== -->
+
+                <div
+                    class="image-card-main form-wrapper"
+                    style="
+                        max-width: 650px;
+                        padding: 40px;
+                    "
+                >
+
+                    <div
+                        class="section-heading"
+                        style="
+                            text-align: center;
+                            margin-bottom: 35px;
+                        "
+                    >
+
+                        <span class="section-label">
+                            STEGANOGRAPHY PROCESS
+                        </span>
+
+                        <h2>
+                            Hide Your
+                            <span>Message</span>
+                        </h2>
+
+                        <p>
+                            Embed your secret data securely
+                            into an image using LSB.
+                        </p>
+
                     </div>
-                    <div class="workspace-title-bar">Encoder Workspace</div>
-                    <div style="width: 42px;"></div> <!-- Spacer penyeimbang -->
-                </div>
 
-                <!-- BODY INSIDE BOX CARD -->
-                <div class="workspace-body">
 
-                    {% if not success %}
+                    <!-- ERROR -->
 
-                    <!-- HEADER TEXT -->
-                    <div class="workspace-intro">
-                        <span class="workspace-badge">Steganography Process</span>
-                        <h2>Hide Your <span>Message</span></h2>
-                        <p>Embed your secret data securely into an image using LSB steganography.</p>
-                    </div>
-
-                    <!-- ERROR ALERT -->
                     {% if error %}
-                    <div class="alert alert-error" style="background: #fff7ed; color: #c2410c; padding: 14px; border-radius: 8px; margin-bottom: 25px; display: flex; gap: 10px; align-items: center;">
-                        <i class="fa-solid fa-triangle-exclamation"></i>
-                        <div>{{ error }}</div>
+
+                    <div class="alert alert-error">
+
+                        <i
+                            class="fa-solid fa-triangle-exclamation"
+                        ></i>
+
+                        <div>
+                            {{ error }}
+                        </div>
+
                     </div>
+
                     {% endif %}
 
-                    <form action="/encode" method="post" enctype="multipart/form-data" id="batch-form">
 
-                        <!-- JUMLAH GAMBAR SELECTOR (1 - 5) -->
-                        <span class="selector-label">Jumlah gambar yang akan diproses</span>
-                        <div class="count-selector-grid">
-                            <button type="button" class="btn-select-count active" onclick="setCount(1)">1</button>
-                            <button type="button" class="btn-select-count" onclick="setCount(2)">2</button>
-                            <button type="button" class="btn-select-count" onclick="setCount(3)">3</button>
-                            <button type="button" class="btn-select-count" onclick="setCount(4)">4</button>
-                            <button type="button" class="btn-select-count" onclick="setCount(5)">5</button>
+                    <!-- FORM -->
+
+                    <form
+                        action="/encode"
+                        method="post"
+                        enctype="multipart/form-data"
+                    >
+
+                        <!-- COVER IMAGE -->
+
+                        <div class="form-group">
+
+                            <label>
+
+                                <i
+                                    class="fa-solid fa-image"
+                                    style="
+                                        color: var(--primary);
+                                        margin-right: 5px;
+                                    "
+                                ></i>
+
+                                Cover Image (PNG / BMP)
+
+                            </label>
+
+                            <input
+                                type="file"
+                                name="image"
+                                class="form-control"
+                                accept=".png,.bmp"
+                                required
+                            >
+
                         </div>
 
-                        <!-- HIDDEN INPUT UNTUK JUMLAH ITEM -->
-                        <input type="hidden" name="image_count" id="image_count" value="1">
 
-                        <!-- CONTAINER CARD ITEM GAMBAR -->
-                        <div id="items-container">
-                            <!-- Template Item Card Generated via JavaScript -->
+                        <!-- MESSAGE -->
+
+                        <div class="form-group">
+
+                            <label>
+
+                                <i
+                                    class="fa-solid fa-envelope"
+                                    style="
+                                        color: var(--primary);
+                                        margin-right: 5px;
+                                    "
+                                ></i>
+
+                                Secret Message
+
+                            </label>
+
+                            <textarea
+                                name="message"
+                                class="form-control"
+                                rows="4"
+                                placeholder="Enter the message you want to hide..."
+                                required
+                            ></textarea>
+
                         </div>
 
-                        <!-- ACTION BAR BOTTOM -->
-                        <div class="action-bar">
-                            <span id="counter-info" style="font-size: 0.85rem; color: #64748b; font-weight: 600;">
-                                1 dari 5 gambar
-                            </span>
 
-                            <button type="submit" class="btn-submit-all">
-                                <i class="fa-solid fa-lock"></i>
-                                Proses Semua Gambar
-                            </button>
+                        <!-- STEGO KEY -->
+
+                        <div class="form-group">
+
+                            <label>
+
+                                <i
+                                    class="fa-solid fa-key"
+                                    style="
+                                        color: var(--primary);
+                                        margin-right: 5px;
+                                    "
+                                ></i>
+
+                                Stego Key (Password)
+
+                            </label>
+
+                            <input
+                                type="password"
+                                name="stego_key"
+                                class="form-control"
+                                placeholder="Enter a secure key for encryption..."
+                                required
+                            >
+
                         </div>
+
+
+                        <!-- M-BIT -->
+
+                        <div class="form-group">
+
+                            <label>
+
+                                <i
+                                    class="fa-solid fa-layer-group"
+                                    style="
+                                        color: var(--primary);
+                                        margin-right: 5px;
+                                    "
+                                ></i>
+
+                                Jumlah Bit LSB
+
+                            </label>
+
+
+                            <select
+                                name="lsb_bits"
+                                class="form-control"
+                            >
+
+                                <option
+                                    value="1"
+                                    {% if selected_m == 1 or not selected_m %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    1-bit LSB Mode utama
+                                </option>
+
+                                <option
+                                    value="2"
+                                    {% if selected_m == 2 %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    2-bit LSB
+                                </option>
+
+                                <option
+                                    value="3"
+                                    {% if selected_m == 3 %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    3-bit LSB
+                                </option>
+
+                                <option
+                                    value="4"
+                                    {% if selected_m == 4 %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    4-bit LSB
+                                </option>
+
+                            </select>
+
+
+                            <div class="small-note">
+
+                                1-bit merupakan metode utama.
+                                2–4 bit merupakan fitur pengayaan
+                                untuk membandingkan kapasitas dan
+                                kualitas citra.
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- INFO -->
+
+                        <div class="info-box">
+
+                            <strong>
+                                Analisis otomatis:
+                            </strong>
+
+                            Setelah proses encoding, sistem akan
+                            menghitung kapasitas, MSE, dan PSNR
+                            untuk 1-bit, 2-bit, 3-bit, dan 4-bit
+                            menggunakan pesan terenkripsi yang sama.
+
+                            <br><br>
+
+                            Hasil ini digunakan untuk melihat
+                            trade-off antara kapasitas penyisipan
+                            dan kualitas citra.
+
+                        </div>
+
+
+                        <!-- BUTTON -->
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary"
+                            style="
+                                width: 100%;
+                                margin-top: 10px;
+                                font-size: 15px;
+                                padding: 15px;
+                            "
+                        >
+
+                            <i class="fa-solid fa-lock"></i>
+
+                            Start Encoding
+
+                        </button>
 
                     </form>
 
-                    {% else %}
+                </div>
+
+
+                {% else %}
+
+                <!-- =================================================
+                     RESULT WRAPPER
+                ================================================== -->
+
+                <div class="form-wrapper">
+
 
                     <!-- =================================================
-                         RESULT WRAPPER (HASIL PROSES)
+                         SUCCESS + METRICS
                     ================================================== -->
-                    <div class="workspace-intro" style="margin-bottom: 25px;">
-                        <span class="workspace-badge" style="color: #16a34a;">Process Completed</span>
-                        <h2>Encoding <span>Successful</span></h2>
-                        <p>Stego image berhasil dibuat menggunakan {{ selected_m }}-bit LSB.</p>
-                    </div>
 
-                    <div class="analysis-card" style="border-top: 4px solid #16a34a;">
+                    <div
+                        class="analysis-card"
+                        style="
+                            border-top: 4px solid var(--success);
+                        "
+                    >
+
+                        <div
+                            class="alert alert-success"
+                            style="margin-bottom: 20px;"
+                        >
+
+                            <i
+                                class="fa-solid fa-circle-check"
+                            ></i>
+
+                            <div>
+
+                                Encoding successful!
+
+                                Stego image berhasil dibuat
+                                menggunakan
+
+                                <strong>
+                                    {{ selected_m }}-bit LSB
+                                </strong>.
+
+                            </div>
+
+                        </div>
+
+
+                        <p class="small-note" style="margin-bottom: 16px;">
+                            {% if database_saved %}
+                                Riwayat analisis berhasil disimpan.
+                            {% else %}
+                                Proses berhasil, tetapi riwayat belum tersimpan ke database.
+                            {% endif %}
+                        </p>
+
+
+                        <!-- METRICS -->
+
                         <div class="metrics-grid">
+
                             <div class="metric-box">
-                                <strong>Mode LSB</strong>
-                                <span>{{ selected_m }}-bit</span>
+
+                                <strong>
+                                    Mode LSB
+                                </strong>
+
+                                <span>
+                                    {{ selected_m }}-bit
+                                </span>
+
                             </div>
+
+
                             <div class="metric-box">
-                                <strong>Message</strong>
-                                <span>{{ message_length }} B</span>
+
+                                <strong>
+                                    Message
+                                </strong>
+
+                                <span>
+                                    {{ message_length }} B
+                                </span>
+
                             </div>
+
+
                             <div class="metric-box">
-                                <strong>Kapasitas</strong>
-                                <span>{{ capacity }} B</span>
+
+                                <strong>
+                                    Kapasitas
+                                </strong>
+
+                                <span>
+                                    {{ capacity }} B
+                                </span>
+
                             </div>
+
+
                             <div class="metric-box">
-                                <strong>MSE</strong>
-                                <span>{{ mse | round(6) }}</span>
+
+                                <strong>
+                                    MSE
+                                </strong>
+
+                                <span>
+                                    {{ mse | round(6) }}
+                                </span>
+
                             </div>
+
+
                             <div class="metric-box">
-                                <strong>PSNR</strong>
-                                <span>{{ psnr | round(2) }} dB</span>
+
+                                <strong>
+                                    PSNR
+                                </strong>
+
+                                <span>
+                                    {{ psnr | round(2) }} dB
+                                </span>
+
                             </div>
+
                         </div>
 
-                        <div class="action-bar" style="border: none; padding-top: 0;">
-                            <a href="{{ stego_data_uri }}" download="{{ output_filename }}" class="btn-submit-all" style="text-decoration: none;">
-                                <i class="fa-solid fa-download"></i> Download Stego PNG
-                            </a>
-                            <a href="/encode" class="btn-select-count" style="text-decoration: none; padding: 12px 20px; display: inline-block;">
-                                <i class="fa-solid fa-rotate-left"></i> Encode Gambar Lain
-                            </a>
+
+                        <div class="small-note">
+
+                            Data terenkripsi:
+
+                            <strong>
+                                {{ encrypted_length }} byte
+                            </strong>
+
+                            &nbsp; | &nbsp;
+
+                            Maksimum pesan asli:
+
+                            <strong>
+                                {{ plaintext_capacity }} byte
+                            </strong>
+
                         </div>
+
+
+                        <!-- BUTTON -->
+
+                        <div
+                            class="action-row"
+                            style="
+                                margin-top: 20px;
+                            "
+                        >
+
+                            <a
+                                href="{{ stego_data_uri }}"
+                                download="{{ output_filename }}"
+                                class="btn btn-primary"
+                            >
+
+                                <i
+                                    class="fa-solid fa-download"
+                                ></i>
+
+                                Download Stego PNG
+
+                            </a>
+
+
+                            <a
+                                href="/encode"
+                                class="btn btn-secondary"
+                            >
+
+                                <i
+                                    class="fa-solid fa-rotate-left"
+                                ></i>
+
+                                Encode Another Image
+
+                            </a>
+
+                        </div>
+
                     </div>
 
-                    <!-- TABEL PERBANDINGAN -->
+
+                    <!-- =================================================
+                         PERBANDINGAN 1-4 BIT
+                    ================================================== -->
+
                     <div class="analysis-card">
-                        <h3 style="font-size: 1.1rem; font-weight: 700; color: #0f172a;">Perbandingan 1-bit sampai 4-bit LSB</h3>
-                        <p style="font-size: 0.85rem; color: #64748b;">Hasil analisis komparasi kapasitas dan visual image.</p>
+
+                        <h3 class="analysis-title">
+
+                            Perbandingan 1-bit sampai 4-bit LSB
+
+                        </h3>
+
+
+                        <p class="analysis-desc">
+
+                            Pesan terenkripsi yang sama digunakan
+                            untuk setiap variasi bit sehingga
+                            kapasitas dan kualitas citra dapat
+                            dibandingkan secara konsisten.
+
+                        </p>
+
 
                         <div class="table-wrapper">
+
                             <table class="comparison-table">
+
                                 <thead>
+
                                     <tr>
-                                        <th>Mode</th>
-                                        <th>Kapasitas</th>
-                                        <th>Maks. Pesan</th>
-                                        <th>Data Terenkripsi</th>
-                                        <th>MSE</th>
-                                        <th>PSNR</th>
-                                        <th>Status</th>
+
+                                        <th>
+                                            Mode
+                                        </th>
+
+                                        <th>
+                                            Kapasitas Data
+                                        </th>
+
+                                        <th>
+                                            Maks. Pesan
+                                        </th>
+
+                                        <th>
+                                            Data Terenkripsi
+                                        </th>
+
+                                        <th>
+                                            MSE
+                                        </th>
+
+                                        <th>
+                                            PSNR
+                                        </th>
+
+                                        <th>
+                                            Status
+                                        </th>
+
                                     </tr>
+
                                 </thead>
+
+
                                 <tbody>
+
                                     {% for result in comparison_results %}
-                                    <tr {% if result.m == selected_m %}style="background: #eff6ff;"{% endif %}>
-                                        <td><strong>{{ result.m }}-bit</strong></td>
-                                        <td>{{ result.capacity }} B</td>
-                                        <td>{{ result.plaintext_capacity }} B</td>
-                                        <td>{{ result.encrypted_size }} B</td>
-                                        <td>{{ result.mse if result.mse is not none else '-' }}</td>
-                                        <td>{{ result.psnr if result.psnr is not none else '-' }} dB</td>
+
+                                    <tr
+                                        {% if result.m == selected_m %}
+                                            class="selected-row"
+                                        {% endif %}
+                                    >
+
                                         <td>
-                                            {% if result.status == "PASS" %}
-                                                <span style="color: #16a34a; font-weight: 700;"><i class="fa-solid fa-check"></i> PASS</span>
-                                            {% else %}
-                                                <span style="color: #dc2626; font-weight: 700;"><i class="fa-solid fa-xmark"></i> FAIL</span>
+
+                                            <strong>
+                                                {{ result.m }}-bit
+                                            </strong>
+
+                                            {% if result.m == selected_m %}
+
+                                            <span class="selected-badge">
+                                                Dipilih
+                                            </span>
+
                                             {% endif %}
+
                                         </td>
+
+
+                                        <td>
+                                            {{ result.capacity }} byte
+                                        </td>
+
+
+                                        <td>
+                                            {{ result.plaintext_capacity }} byte
+                                        </td>
+
+
+                                        <td>
+                                            {{ result.encrypted_size }} byte
+                                        </td>
+
+
+                                        <td>
+
+                                            {% if result.mse is not none %}
+
+                                                {{ result.mse }}
+
+                                            {% else %}
+
+                                                -
+
+                                            {% endif %}
+
+                                        </td>
+
+
+                                        <td>
+
+                                            {% if result.psnr is not none %}
+
+                                                {{ result.psnr }} dB
+
+                                            {% else %}
+
+                                                -
+
+                                            {% endif %}
+
+                                        </td>
+
+
+                                        <td>
+
+                                            {% if result.status == "PASS" %}
+
+                                            <span class="status-pass">
+
+                                                <i
+                                                    class="fa-solid fa-circle-check"
+                                                ></i>
+
+                                                PASS
+
+                                            </span>
+
+                                            {% else %}
+
+                                            <span
+                                                class="status-fail"
+                                                title="{{ result.error }}"
+                                            >
+
+                                                <i
+                                                    class="fa-solid fa-circle-xmark"
+                                                ></i>
+
+                                                FAIL
+
+                                            </span>
+
+                                            {% endif %}
+
+                                        </td>
+
                                     </tr>
+
                                     {% endfor %}
+
                                 </tbody>
+
                             </table>
+
                         </div>
+
+
+                        <!-- TRADE-OFF -->
+
+                        <div class="info-box">
+
+                            <strong>
+                                Analisis trade-off:
+                            </strong>
+
+                            <br>
+
+                            Semakin besar jumlah bit LSB yang
+                            digunakan, kapasitas penyisipan semakin
+                            besar karena lebih banyak bit pada
+                            setiap channel RGB dimanfaatkan.
+
+                            <br><br>
+
+                            Namun, semakin banyak bit yang diubah,
+                            semakin besar kemungkinan terjadi
+                            perubahan nilai pixel. Akibatnya,
+                            nilai MSE cenderung meningkat dan
+                            PSNR cenderung menurun.
+
+                            <br><br>
+
+                            Dengan demikian terdapat trade-off
+                            antara kapasitas penyisipan dan
+                            kualitas citra.
+
+                        </div>
+
                     </div>
 
-                    <!-- PERBANDINGAN CITRA -->
+
+                    <!-- =================================================
+                         COVER VS STEGO
+                    ================================================== -->
+
                     <div class="analysis-card">
-                        <h3 style="font-size: 1.1rem; font-weight: 700; color: #0f172a;">Perbandingan Citra</h3>
+
+                        <h3 class="analysis-title">
+                            Perbandingan Citra
+                        </h3>
+
+
+                        <p class="analysis-desc">
+
+                            Cover image dibandingkan dengan stego
+                            image menggunakan mode
+
+                            <strong>
+                                {{ selected_m }}-bit
+                            </strong>.
+
+                        </p>
+
+
                         <div class="grid-2">
+
+
+                            <!-- COVER -->
+
                             <div class="image-preview-container">
-                                <h4 style="font-size: 0.85rem; margin-bottom: 8px;">Cover Image (Asli)</h4>
+
+                                <h4
+                                    style="
+                                        font-size: 14px;
+                                        margin-bottom: 10px;
+                                        color: var(--dark);
+                                    "
+                                >
+                                    Cover Image (Asli)
+                                </h4>
+
+
                                 <div class="image-preview-background">
-                                    <img src="{{ cover_data_uri }}" alt="Cover Image">
+
+                                    <img
+                                        src="{{ cover_data_uri }}"
+                                        alt="Cover Image"
+                                        style="
+                                            max-height: 300px;
+                                            width: auto;
+                                        "
+                                    >
+
                                 </div>
+
+
+                                <div class="small-note">
+
+                                    {{ original_filename }}
+
+                                </div>
+
                             </div>
+
+
+                            <!-- STEGO -->
+
                             <div class="image-preview-container">
-                                <h4 style="font-size: 0.85rem; margin-bottom: 8px;">Stego Image ({{ selected_m }}-bit)</h4>
+
+                                <h4
+                                    style="
+                                        font-size: 14px;
+                                        margin-bottom: 10px;
+                                        color: var(--dark);
+                                    "
+                                >
+                                    Stego Image
+                                    ({{ selected_m }}-bit)
+                                </h4>
+
+
                                 <div class="image-preview-background">
-                                    <img src="{{ stego_data_uri }}" alt="Stego Image">
+
+                                    <img
+                                        src="{{ stego_data_uri }}"
+                                        alt="Stego Image"
+                                        style="
+                                            max-height: 300px;
+                                            width: auto;
+                                        "
+                                    >
+
                                 </div>
+
+
+                                <div class="small-note">
+
+                                    {{ output_filename }}
+
+                                </div>
+
                             </div>
+
                         </div>
+
                     </div>
 
-                    {% endif %}
+
+                    <!-- =================================================
+                         ENHANCED LSB
+                    ================================================== -->
+
+                    <div class="analysis-card">
+
+                        <h3 class="analysis-title">
+                            Enhanced LSB
+                        </h3>
+
+
+                        <p class="analysis-desc">
+
+                            Visualisasi bidang LSB dari stego
+                            image untuk membantu analisis
+                            steganografi secara visual.
+
+                        </p>
+
+
+                        <div class="image-preview-container">
+
+                            <h4
+                                style="
+                                    font-size: 14px;
+                                    margin-bottom: 10px;
+                                    color: var(--dark);
+                                "
+                            >
+                                LSB Plane
+                            </h4>
+
+
+                            <div
+                                style="
+                                    display: flex;
+                                    justify-content: center;
+                                    align-items: center;
+                                    background: #e2e8f0;
+                                    border-radius: 4px;
+                                    padding: 20px;
+                                "
+                            >
+
+                                <img
+                                    src="{{ lsb_data_uri }}"
+                                    alt="Enhanced LSB"
+                                    style="
+                                        max-height: 400px;
+                                        max-width: 100%;
+                                        object-fit: contain;
+                                    "
+                                >
+
+                            </div>
+
+
+                            <div class="small-note">
+                                {{ lsb_filename }}
+                            </div>
+
+                        </div>
+
+
+                        <div class="info-box">
+
+                            <strong>
+                                Catatan:
+                            </strong>
+
+                            Enhanced LSB hanya digunakan
+                            sebagai visualisasi analisis dan
+                            bukan file untuk proses decode.
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- =================================================
+                         HISTOGRAM
+                    ================================================== -->
+
+                    <div class="analysis-card">
+
+                        <h3 class="analysis-title">
+                            Histogram Cover vs Stego
+                        </h3>
+
+
+                        <p class="analysis-desc">
+
+                            Distribusi nilai pixel pada cover image
+                            dibandingkan dengan stego image
+                            {{ selected_m }}-bit.
+
+                        </p>
+
+
+                        <div
+                            style="
+                                height: 400px;
+                                width: 100%;
+                            "
+                        >
+
+                            <canvas
+                                id="histogramChart"
+                            ></canvas>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- =================================================
+                         JPEG RE-SAVE
+                    ================================================== -->
+
+                    <div class="analysis-card">
+
+                        <h3 class="analysis-title">
+                            JPEG Re-save Test
+                        </h3>
+
+
+                        <p class="analysis-desc">
+
+                            Stego image {{ selected_m }}-bit
+                            disimpan ulang ke JPEG quality 75
+                            untuk menguji kerapuhan data LSB
+                            terhadap kompresi lossy.
+
+                        </p>
+
+
+                        <div class="grid-2">
+
+
+                            <!-- STEGO PNG -->
+
+                            <div class="image-preview-container">
+
+                                <h4
+                                    style="
+                                        font-size: 14px;
+                                        margin-bottom: 10px;
+                                        color: var(--dark);
+                                    "
+                                >
+                                    Stego PNG
+                                </h4>
+
+
+                                <div class="image-preview-background">
+
+                                    <img
+                                        src="{{ stego_data_uri }}"
+                                        alt="Stego PNG"
+                                        style="
+                                            max-height: 250px;
+                                            width: auto;
+                                        "
+                                    >
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- JPEG -->
+
+                            <div class="image-preview-container">
+
+                                <h4
+                                    style="
+                                        font-size: 14px;
+                                        margin-bottom: 10px;
+                                        color: var(--dark);
+                                    "
+                                >
+                                    JPEG Re-save
+                                </h4>
+
+
+                                <div class="image-preview-background">
+
+                                    <img
+                                        src="{{ jpeg_data_uri }}"
+                                        alt="JPEG Re-save"
+                                        style="
+                                            max-height: 250px;
+                                            width: auto;
+                                        "
+                                    >
+
+                                </div>
+
+
+                                <div class="small-note">
+
+                                    Format:
+                                    <strong>JPEG</strong>
+
+                                    &nbsp; | &nbsp;
+
+                                    Quality:
+                                    <strong>75</strong>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- JPEG FORM -->
+
+                        <div
+                            style="
+                                margin-top: 25px;
+                                padding-top: 20px;
+                                border-top: 1px solid var(--border);
+                            "
+                        >
+
+                            <h4
+                                style="
+                                    font-size: 15px;
+                                    margin-bottom: 15px;
+                                "
+                            >
+                                Uji Decode JPEG
+                            </h4>
+
+
+                            <form
+                                action="/jpeg-test"
+                                method="post"
+                                style="
+                                    display: flex;
+                                    gap: 10px;
+                                    align-items: center;
+                                    flex-wrap: wrap;
+                                "
+                            >
+
+                                <input
+                                    type="hidden"
+                                    name="jpeg_filename"
+                                    value="{{ jpeg_filename }}"
+                                >
+
+
+                                <input
+                                    type="hidden"
+                                    name="original_message"
+                                    value="{{ original_message }}"
+                                >
+
+
+                                <input
+                                    type="hidden"
+                                    name="jpeg_data_base64"
+                                    value="{{ jpeg_data_base64 }}"
+                                >
+
+
+                                <input
+                                    type="hidden"
+                                    name="lsb_bits"
+                                    value="{{ selected_m }}"
+                                >
+
+
+                                <input
+                                    type="password"
+                                    name="stego_key"
+                                    class="form-control"
+                                    placeholder="Masukkan stego key..."
+                                    required
+                                    style="
+                                        flex: 1;
+                                        min-width: 220px;
+                                        margin: 0;
+                                    "
+                                >
+
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-secondary"
+                                    style="
+                                        padding: 14px 25px;
+                                        margin: 0;
+                                    "
+                                >
+
+                                    <i
+                                        class="fa-solid fa-code"
+                                    ></i>
+
+                                    Decode JPEG
+
+                                </button>
+
+                            </form>
+
+                        </div>
+
+                    </div>
+
 
                 </div>
+
+
+                <!-- =================================================
+                     HISTOGRAM SCRIPT
+                ================================================== -->
+
+                <script
+                    id="cover-histogram-data"
+                    type="application/json"
+                >{{ cover_histogram | tojson }}</script>
+
+                <script
+                    id="stego-histogram-data"
+                    type="application/json"
+                >{{ stego_histogram | tojson }}</script>
+
+                <script>
+
+                    const coverHist = JSON.parse(
+                        document.getElementById(
+                            "cover-histogram-data"
+                        ).textContent
+                    );
+
+                    const stegoHist = JSON.parse(
+                        document.getElementById(
+                            "stego-histogram-data"
+                        ).textContent
+                    );
+
+
+                    const labels =
+                        Array.from(
+                            {
+                                length: 256
+                            },
+                            (_, index) => index
+                        );
+
+
+                    const histogramData = {
+
+                        labels: labels,
+
+                        datasets: [
+
+                            {
+                                label: "Cover Red",
+                                data: coverHist.red,
+                                borderColor:
+                                    "rgba(54, 162, 235, 1)",
+                                backgroundColor:
+                                    "rgba(54, 162, 235, 0.5)",
+                                borderWidth: 1,
+                                fill: false,
+                                tension: 0.1
+                            },
+
+                            {
+                                label: "Stego Red",
+                                data: stegoHist.red,
+                                borderColor:
+                                    "rgba(255, 99, 132, 1)",
+                                backgroundColor:
+                                    "rgba(255, 99, 132, 0.5)",
+                                borderWidth: 1,
+                                fill: false,
+                                tension: 0.1
+                            },
+
+                            {
+                                label: "Cover Green",
+                                data: coverHist.green,
+                                borderColor:
+                                    "rgba(75, 192, 192, 1)",
+                                backgroundColor:
+                                    "rgba(75, 192, 192, 0.5)",
+                                borderWidth: 1,
+                                fill: false,
+                                tension: 0.1
+                            },
+
+                            {
+                                label: "Stego Green",
+                                data: stegoHist.green,
+                                borderColor:
+                                    "rgba(255, 206, 86, 1)",
+                                backgroundColor:
+                                    "rgba(255, 206, 86, 0.5)",
+                                borderWidth: 1,
+                                fill: false,
+                                tension: 0.1
+                            },
+
+                            {
+                                label: "Cover Blue",
+                                data: coverHist.blue,
+                                borderColor:
+                                    "rgba(153, 102, 255, 1)",
+                                backgroundColor:
+                                    "rgba(153, 102, 255, 0.5)",
+                                borderWidth: 1,
+                                fill: false,
+                                tension: 0.1
+                            },
+
+                            {
+                                label: "Stego Blue",
+                                data: stegoHist.blue,
+                                borderColor:
+                                    "rgba(201, 203, 207, 1)",
+                                backgroundColor:
+                                    "rgba(201, 203, 207, 0.5)",
+                                borderWidth: 1,
+                                fill: false,
+                                tension: 0.1
+                            }
+
+                        ]
+
+                    };
+
+
+                    const histogramConfig = {
+
+                        type: "line",
+
+                        data: histogramData,
+
+                        options: {
+
+                            responsive: true,
+
+                            maintainAspectRatio: false,
+
+                            plugins: {
+
+                                legend: {
+                                    position: "top"
+                                }
+
+                            },
+
+                            scales: {
+
+                                x: {
+
+                                    title: {
+                                        display: true,
+                                        text: "Nilai Pixel"
+                                    },
+
+                                    ticks: {
+                                        maxTicksLimit: 30
+                                    }
+
+                                },
+
+                                y: {
+
+                                    title: {
+                                        display: true,
+                                        text: "Jumlah Pixel"
+                                    }
+
+                                }
+
+                            }
+
+                        }
+
+                    };
+
+
+                    const chartElement =
+                        document.getElementById(
+                            "histogramChart"
+                        );
+
+
+                    if (chartElement) {
+
+                        const chartContext =
+                            chartElement.getContext(
+                                "2d"
+                            );
+
+
+                        new Chart(
+                            chartContext,
+                            histogramConfig
+                        );
+
+                    }
+
+                </script>
+
+
+                {% endif %}
+
             </div>
 
         </section>
+
     </main>
+
 
     <!-- =========================================================
          FOOTER
     ========================================================== -->
+
     <footer class="footer">
+
         <div class="footer-container">
+
             <div class="footer-brand">
-                <a href="/" class="brand" style="color: white;">
+
+                <a
+                    href="/"
+                    class="brand"
+                    style="color: white;"
+                >
+
                     <div class="brand-icon">
-                        <i class="fa-solid fa-shield-halved"></i>
+
+                        <i
+                            class="fa-solid fa-shield-halved"
+                        ></i>
+
                     </div>
-                    <span>Stego<span class="brand-highlight">Lab</span></span>
+
+                    <span>
+
+                        Stego
+                        <span class="brand-highlight">
+                            Lab
+                        </span>
+
+                    </span>
+
                 </a>
-                <p>Image steganography application for secure message communication.</p>
+
+
+                <p>
+                    Image steganography application
+                    for secure message communication.
+                </p>
+
             </div>
+
+
             <div class="footer-links">
-                <a href="/">Home</a>
-                <a href="/encode">Encode</a>
-                <a href="/decode">Decode</a>
+
+                <a href="/">
+                    Home
+                </a>
+
+                <a href="/encode">
+                    Encode
+                </a>
+
+                <a href="/decode">
+                    Decode
+                </a>
+
             </div>
+
         </div>
+
+
         <div class="footer-bottom">
-            <p>© 2026 StegoLab. Academic Project.</p>
-            <span>Informatics</span>
+
+            <p>
+                © 2026 StegoLab.
+                Academic Project.
+            </p>
+
+            <span>
+                Informatics
+            </span>
+
         </div>
+
     </footer>
 
-<!-- =========================================================
-     JAVASCRIPT LOGIC
-========================================================== -->
-<script>
-    let currentCount = 1;
-
-    function renderItems(count) {
-        const container = document.getElementById('items-container');
-        if (!container) return;
-
-        container.innerHTML = '';
-
-        for (let i = 1; i <= count; i++) {
-            const card = document.createElement('div');
-            card.className = 'item-card';
-            card.innerHTML = `
-                <div class="item-card-header">
-                    <div class="item-card-title">
-                        <i class="fa-solid fa-image" style="color: #2563eb;"></i>
-                        Gambar ${i}
-                    </div>
-                    <span class="item-card-badge">ITEM ${i}</span>
-                </div>
-
-                <!-- COVER IMAGE -->
-                <div class="form-group">
-                    <label><i class="fa-regular fa-image" style="color: #2563eb;"></i> Cover Image (PNG / BMP)</label>
-                    <input type="file" name="image_${i}" class="form-control" accept=".png,.bmp" ${i === 1 ? 'required' : ''}>
-                </div>
-
-                <!-- SECRET MESSAGE -->
-                <div class="form-group">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                        <label style="margin: 0;"><i class="fa-regular fa-envelope" style="color: #2563eb;"></i> Secret Message</label>
-                        <div class="msg-type-toggle">
-                            <button type="button" class="btn-toggle-type active" id="btn_type_text_${i}" onclick="switchMessageType(${i}, 'text')">
-                                <i class="fa-solid fa-align-left"></i> Tulis Pesan
-                            </button>
-                            <button type="button" class="btn-toggle-type" id="btn_type_file_${i}" onclick="switchMessageType(${i}, 'file')">
-                                <i class="fa-solid fa-file-lines"></i> Upload .txt
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- TEXT AREA -->
-                    <div id="msg_text_group_${i}">
-                        <textarea name="message_${i}" id="message_text_${i}" class="form-control" placeholder="Enter the message you want to hide..." ${i === 1 ? 'required' : ''}></textarea>
-                    </div>
-
-                    <!-- FILE INPUT -->
-                    <div id="msg_file_group_${i}" style="display: none;">
-                        <input type="file" name="message_file_${i}" id="message_file_${i}" class="form-control" accept=".txt">
-                        <span style="font-size: 0.75rem; color: #94a3b8;">Upload file teks berkestensi .txt</span>
-                    </div>
-                </div>
-
-                <!-- STEGO KEY -->
-                <div class="form-group">
-                    <label><i class="fa-solid fa-key" style="color: #2563eb;"></i> Stego Key (Password)</label>
-                    <input type="password" name="stego_key_${i}" class="form-control" placeholder="Enter a secure key for encryption..." ${i === 1 ? 'required' : ''}>
-                </div>
-
-                <!-- MODE LSB -->
-                <div class="form-group">
-                    <label><i class="fa-solid fa-layer-group" style="color: #2563eb;"></i> Jumlah Bit LSB</label>
-                    <input type="hidden" name="lsb_bits_${i}" id="lsb_bits_${i}" value="1">
-
-                    <div class="lsb-selector-grid">
-                        <button type="button" class="btn-lsb-mode active" id="btn_lsb_${i}_1" onclick="setLsbBit(${i}, 1)">1-bit</button>
-                        <button type="button" class="btn-lsb-mode" id="btn_lsb_${i}_2" onclick="setLsbBit(${i}, 2)">2-bit</button>
-                        <button type="button" class="btn-lsb-mode" id="btn_lsb_${i}_3" onclick="setLsbBit(${i}, 3)">3-bit</button>
-                        <button type="button" class="btn-lsb-mode" id="btn_lsb_${i}_4" onclick="setLsbBit(${i}, 4)">4-bit</button>
-                    </div>
-
-                    <label class="checkbox-container">
-                        <input type="checkbox" name="compare_all_${i}" value="1">
-                        Bandingkan semua mode 1–4 bit untuk gambar ini (lebih lama)
-                    </label>
-                </div>
-            `;
-            container.appendChild(card);
-        }
-
-        document.getElementById('image_count').value = count;
-        document.getElementById('counter-info').innerText = `${count} dari 5 gambar`;
-    }
-
-    function switchMessageType(itemIndex, type) {
-        const textGroup = document.getElementById(`msg_text_group_${itemIndex}`);
-        const fileGroup = document.getElementById(`msg_file_group_${itemIndex}`);
-        const btnText = document.getElementById(`btn_type_text_${itemIndex}`);
-        const btnFile = document.getElementById(`btn_type_file_${itemIndex}`);
-        const textArea = document.getElementById(`message_text_${itemIndex}`);
-        const fileInput = document.getElementById(`message_file_${itemIndex}`);
-
-        if (type === 'text') {
-            textGroup.style.display = 'block';
-            fileGroup.style.display = 'none';
-            btnText.classList.add('active');
-            btnFile.classList.remove('active');
-            if (itemIndex === 1) textArea.setAttribute('required', 'required');
-            fileInput.removeAttribute('required');
-            fileInput.value = '';
-        } else {
-            textGroup.style.display = 'none';
-            fileGroup.style.display = 'block';
-            btnFile.classList.add('active');
-            btnText.classList.remove('active');
-            if (itemIndex === 1) fileInput.setAttribute('required', 'required');
-            textArea.removeAttribute('required');
-            textArea.value = '';
-        }
-    }
-
-    function setCount(count) {
-        currentCount = count;
-        const buttons = document.querySelectorAll('.count-selector-grid .btn-select-count');
-        buttons.forEach((btn, index) => {
-            if (index + 1 === count) {
-                btn.classList.add('active');
-            } else {
-                btn.classList.remove('active');
-            }
-        });
-
-        renderItems(count);
-    }
-
-    function setLsbBit(itemIndex, bitValue) {
-        document.getElementById(`lsb_bits_${itemIndex}`).value = bitValue;
-
-        for (let b = 1; b <= 4; b++) {
-            const btn = document.getElementById(`btn_lsb_${itemIndex}_${b}`);
-            if (btn) {
-                if (b === bitValue) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
-            }
-        }
-    }
-
-    document.addEventListener("DOMContentLoaded", function() {
-        if (document.getElementById('items-container')) {
-            renderItems(1);
-        }
-    });
-</script>
+</div>
 
 </body>
+
 </html>

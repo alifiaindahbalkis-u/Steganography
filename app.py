@@ -76,32 +76,23 @@ from steganography.jpeg_test import (
 
 load_dotenv()
 
-APP_ENV = os.environ.get(
-    "APP_ENV",
-    "development"
-).lower()
-
-IS_PRODUCTION = (
-    APP_ENV == "production"
-    or os.environ.get("VERCEL") == "1"
-)
-
+APP_ENV = os.environ.get("APP_ENV", "development").lower()
+IS_PRODUCTION = APP_ENV == "production" or os.environ.get("VERCEL") == "1"
 RATELIMIT_STORAGE_URI = os.environ.get(
     "RATELIMIT_STORAGE_URI",
     "memory://"
 )
 
-flask_secret_key = os.environ.get(
-    "FLASK_SECRET_KEY"
-)
-
-if not flask_secret_key:
+if IS_PRODUCTION and not RATELIMIT_STORAGE_URI.startswith(("redis://", "rediss://")):
     raise RuntimeError(
-        "FLASK_SECRET_KEY must be configured."
+        "Production requires RATELIMIT_STORAGE_URI to point to shared Redis."
     )
 
-app = Flask(__name__)
+flask_secret_key = os.environ.get("FLASK_SECRET_KEY")
+if not flask_secret_key:
+    raise RuntimeError("FLASK_SECRET_KEY must be configured.")
 
+app = Flask(__name__)
 app.config.update(
     SECRET_KEY=flask_secret_key,
     MAX_CONTENT_LENGTH=50 * 1024 * 1024,
@@ -116,11 +107,13 @@ limiter = Limiter(
     app=app,
     default_limits=[],
     storage_uri=RATELIMIT_STORAGE_URI,
+    strategy="fixed-window",
 )
 
 
 @app.after_request
 def add_security_headers(response):
+
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
@@ -137,8 +130,10 @@ def add_security_headers(response):
 
 
 def finite_metric(value):
+
     if value is None or not math.isfinite(value):
         return None
+
     return value
 
 
@@ -148,11 +143,13 @@ def save_run(
     source_image=None,
     result_image=None
 ):
+
     run_id = str(uuid4())
     uploaded_paths = []
     row_inserted = False
 
     try:
+
         values = {
             **run_data,
             "id": run_id,
@@ -166,6 +163,7 @@ def save_run(
             ("source", source_image, "source_image_path"),
             ("result", result_image, "result_image_path"),
         ):
+
             if image is None:
                 continue
 
@@ -178,9 +176,11 @@ def save_run(
             ))
 
         if upload_tasks:
+
             with ThreadPoolExecutor(
                 max_workers=len(upload_tasks)
             ) as executor:
+
                 futures = [
                     executor.submit(
                         upload_history_image,
@@ -200,6 +200,7 @@ def save_run(
         row_inserted = True
 
         if mode_results:
+
             insert_rows(
                 "bit_mode_results",
                 [
@@ -214,8 +215,11 @@ def save_run(
         return True
 
     except Exception as error:
+
         if not row_inserted:
+
             for object_path in uploaded_paths:
+
                 try:
                     delete_history_image(object_path)
                 except Exception:
@@ -229,10 +233,16 @@ def save_run(
         return False
 
 
+# Vercel menggunakan filesystem sementara /tmp.
+# Saat dijalankan secara lokal, gunakan folder project biasa.
+
 if os.environ.get("VERCEL") == "1":
+
     UPLOAD_FOLDER = "/tmp/uploads"
     OUTPUT_FOLDER = "/tmp/outputs"
+
 else:
+
     UPLOAD_FOLDER = "uploads"
     OUTPUT_FOLDER = "outputs"
 
@@ -242,11 +252,20 @@ ALLOWED_EXTENSIONS = {
     "bmp"
 }
 
+
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 app.config["OUTPUT_FOLDER"] = OUTPUT_FOLDER
 
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-os.makedirs(OUTPUT_FOLDER, exist_ok=True)
+
+os.makedirs(
+    UPLOAD_FOLDER,
+    exist_ok=True
+)
+
+os.makedirs(
+    OUTPUT_FOLDER,
+    exist_ok=True
+)
 
 
 # ============================================================
@@ -254,20 +273,39 @@ os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 # ============================================================
 
 def allowed_file(filename):
+
     return (
         "." in filename
-        and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+        and filename.rsplit(
+            ".",
+            1
+        )[1].lower()
+        in ALLOWED_EXTENSIONS
     )
 
 
 def validate_m_bit(value):
-    try:
-        m = int(value)
-    except (TypeError, ValueError):
-        raise ValueError("Jumlah bit harus berupa 1, 2, 3, atau 4.")
 
-    if m not in (1, 2, 3, 4):
-        raise ValueError("Jumlah bit harus berupa 1, 2, 3, atau 4.")
+    try:
+
+        m = int(value)
+
+    except (TypeError, ValueError):
+
+        raise ValueError(
+            "Jumlah bit harus berupa 1, 2, 3, atau 4."
+        )
+
+    if m not in (
+        1,
+        2,
+        3,
+        4
+    ):
+
+        raise ValueError(
+            "Jumlah bit harus berupa 1, 2, 3, atau 4."
+        )
 
     return m
 
@@ -277,46 +315,144 @@ def validate_m_bit(value):
 # ============================================================
 
 def prepare_image(image):
-    if image.mode in ("RGB", "RGBA"):
+    """
+    Mempertahankan transparansi jika gambar
+    memiliki channel alpha.
+    """
+
+    if image.mode in (
+        "RGB",
+        "RGBA"
+    ):
+
         return image
 
-    if image.mode == "P" and "transparency" in image.info:
-        return image.convert("RGBA")
+
+    if (
+        image.mode == "P"
+        and "transparency"
+        in image.info
+    ):
+
+        return image.convert(
+            "RGBA"
+        )
+
 
     if image.mode == "LA":
-        return image.convert("RGBA")
 
-    return image.convert("RGB")
+        return image.convert(
+            "RGBA"
+        )
+
+
+    return image.convert(
+        "RGB"
+    )
 
 
 # ============================================================
-# CONVERTERS
+# IMAGE -> BASE64 DATA URI
 # ============================================================
 
-def image_to_data_uri(image, image_format="PNG"):
+def image_to_data_uri(
+    image,
+    image_format="PNG"
+):
+    """
+    Mengubah PIL Image menjadi Base64 Data URI.
+
+    Digunakan agar gambar dapat langsung ditampilkan
+    pada browser, termasuk ketika aplikasi dijalankan
+    di Vercel.
+    """
+
     buffer = BytesIO()
-    image.save(buffer, format=image_format)
-    encoded = base64.b64encode(buffer.getvalue()).decode("utf-8")
 
-    mime_type = "image/jpeg" if image_format.upper() == "JPEG" else "image/png"
-    return f"data:{mime_type};base64,{encoded}"
+
+    image.save(
+        buffer,
+        format=image_format
+    )
+
+
+    encoded = base64.b64encode(
+        buffer.getvalue()
+    ).decode(
+        "utf-8"
+    )
+
+
+    if image_format.upper() == "JPEG":
+
+        mime_type = "image/jpeg"
+
+    else:
+
+        mime_type = "image/png"
+
+
+    return (
+        f"data:{mime_type};base64,{encoded}"
+    )
 
 
 def image_to_png_bytes(image):
+
     buffer = BytesIO()
-    image.save(buffer, format="PNG")
+
+    image.save(
+        buffer,
+        format="PNG"
+    )
+
     return buffer.getvalue()
 
 
-def file_to_data_uri(file_path, mime_type):
-    with open(file_path, "rb") as file:
-        encoded = base64.b64encode(file.read()).decode("utf-8")
-    return f"data:{mime_type};base64,{encoded}"
+# ============================================================
+# FILE -> BASE64 DATA URI
+# ============================================================
+
+def file_to_data_uri(
+    file_path,
+    mime_type
+):
+
+    with open(
+        file_path,
+        "rb"
+    ) as file:
+
+        encoded = base64.b64encode(
+            file.read()
+        ).decode(
+            "utf-8"
+        )
 
 
-def file_to_base64(file_path):
-    with open(file_path, "rb") as file:
-        return base64.b64encode(file.read()).decode("utf-8")
+    return (
+        f"data:{mime_type};base64,{encoded}"
+    )
+
+
+# ============================================================
+# FILE -> BASE64
+# ============================================================
+
+def file_to_base64(
+    file_path
+):
+
+    with open(
+        file_path,
+        "rb"
+    ) as file:
+
+        return base64.b64encode(
+            file.read()
+        ).decode(
+            "utf-8"
+        )
 
 
 # ============================================================
@@ -325,187 +461,668 @@ def file_to_base64(file_path):
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+
+    return render_template(
+        "index.html"
+    )
 
 
 # ============================================================
-# ENCODE (SINGLE IMAGE + FILE .TXT SUPPORT)
+# ENCODE
 # ============================================================
 
-@app.route("/encode", methods=["GET", "POST"])
+@app.route(
+    "/encode",
+    methods=[
+        "GET",
+        "POST"
+    ]
+)
 def encode():
+
+    # --------------------------------------------------------
+    # GET
+    # --------------------------------------------------------
+
     if request.method == "GET":
-        return render_template("encode.html")
 
-    image_file = request.files.get("image")
+        return render_template(
+            "encode_batch.html"
+        )
 
-    # Ambil pesan manual dan file pesan .txt
-    manual_message = request.form.get("message", "").strip()
-    message_file = request.files.get("message_file")
-    message = ""
 
-    if message_file and message_file.filename != "":
-        if not message_file.filename.lower().endswith(".txt"):
-            return render_template(
-                "encode.html",
-                error="File pesan rahasia harus berformat .txt!"
-            )
-        try:
-            message = message_file.read().decode("utf-8")
-        except UnicodeDecodeError:
-            return render_template(
-                "encode.html",
-                error="Gagal membaca file .txt. Pastikan file berformat UTF-8!"
-            )
-    elif manual_message:
-        message = manual_message
+    # --------------------------------------------------------
+    # AMBIL INPUT
+    # --------------------------------------------------------
 
-    stego_key = request.form.get("stego_key", "")
-    selected_m_value = request.form.get("lsb_bits", "1")
+    image_file = request.files.get(
+        "image"
+    )
+
+
+    message = request.form.get(
+        "message",
+        ""
+    )
+
+
+    stego_key = request.form.get(
+        "stego_key",
+        ""
+    )
+
+
+    selected_m_value = request.form.get(
+        "lsb_bits",
+        "1"
+    )
+
+
+    # --------------------------------------------------------
+    # VALIDASI JUMLAH BIT
+    # --------------------------------------------------------
 
     try:
-        selected_m = validate_m_bit(selected_m_value)
+
+        selected_m = validate_m_bit(
+            selected_m_value
+        )
+
     except ValueError as e:
-        return render_template("encode.html", error=str(e))
 
-    if not image_file or image_file.filename == "":
         return render_template(
             "encode.html",
-            error="Silakan pilih gambar terlebih dahulu."
+            error=str(e)
         )
 
-    if not allowed_file(image_file.filename):
+
+    # --------------------------------------------------------
+    # VALIDASI GAMBAR
+    # --------------------------------------------------------
+
+    if (
+        not image_file
+        or image_file.filename == ""
+    ):
+
         return render_template(
             "encode.html",
-            error="Format gambar harus PNG atau BMP."
+            error=(
+                "Silakan pilih gambar terlebih dahulu."
+            )
         )
+
+
+    if not allowed_file(
+        image_file.filename
+    ):
+
+        return render_template(
+            "encode.html",
+            error=(
+                "Format gambar harus PNG atau BMP."
+            )
+        )
+
+
+    # --------------------------------------------------------
+    # VALIDASI PESAN
+    # --------------------------------------------------------
 
     if not message.strip():
+
         return render_template(
             "encode.html",
-            error="Pesan rahasia tidak boleh kosong. Ketik pesan manual atau unggah file .txt."
+            error=(
+                "Pesan tidak boleh kosong."
+            )
         )
+
+
+    # --------------------------------------------------------
+    # VALIDASI STEGO KEY
+    # --------------------------------------------------------
 
     if not stego_key:
+
         return render_template(
             "encode.html",
-            error="Stego-key tidak boleh kosong."
+            error=(
+                "Stego-key tidak boleh kosong."
+            )
         )
 
+
     try:
-        filename = secure_filename(image_file.filename)
-        input_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-        image_file.save(input_path)
 
-        original_image = Image.open(input_path)
-        original_image = prepare_image(original_image)
+        # ====================================================
+        # SIMPAN COVER IMAGE
+        # ====================================================
 
-        cover_data_uri = image_to_data_uri(original_image, "PNG")
+        filename = secure_filename(
+            image_file.filename
+        )
 
-        encrypted_message = encrypt_message(message, stego_key)
-        encrypted_length = len(encrypted_message)
-        message_length = len(message.encode("utf-8"))
+
+        input_path = os.path.join(
+            app.config["UPLOAD_FOLDER"],
+            filename
+        )
+
+
+        image_file.save(
+            input_path
+        )
+
+
+        # ====================================================
+        # BUKA COVER IMAGE
+        # ====================================================
+
+        original_image = Image.open(
+            input_path
+        )
+
+
+        original_image = prepare_image(
+            original_image
+        )
+
+
+        # ====================================================
+        # COVER DATA URI
+        # ====================================================
+
+        cover_data_uri = image_to_data_uri(
+            original_image,
+            "PNG"
+        )
+
+
+        # ====================================================
+        # ENKRIPSI PESAN
+        # ====================================================
+        #
+        # Pesan dienkripsi SATU KALI.
+        #
+        # Payload terenkripsi yang sama digunakan untuk
+        # perbandingan 1-bit, 2-bit, 3-bit, dan 4-bit.
+        #
+        # ====================================================
+
+        encrypted_message = encrypt_message(
+            message,
+            stego_key
+        )
+
+
+        encrypted_length = len(
+            encrypted_message
+        )
+
+
+        message_length = len(
+            message.encode(
+                "utf-8"
+            )
+        )
+
+
+        # ====================================================
+        # OVERHEAD AES-GCM
+        # ====================================================
+        #
+        # Salt       = 16 byte
+        # Nonce      = 12 byte
+        # GCM tag    = 16 byte
+        #
+        # Total      = 44 byte
+        #
+        # ====================================================
 
         encryption_overhead = 44
+
+
+        # ====================================================
+        # PERBANDINGAN 1-4 BIT
+        # ====================================================
+
         comparison_results = []
+
+
         selected_stego_image = None
 
-        for m in (1, 2, 3, 4):
-            capacity = get_mbit_capacity(original_image, m)
-            plaintext_capacity = max(0, capacity - encryption_overhead)
+
+        # ====================================================
+        # UJI m = 1, 2, 3, 4
+        # ====================================================
+
+        for m in (
+            1,
+            2,
+            3,
+            4
+        ):
+
+            # ------------------------------------------------
+            # HITUNG KAPASITAS
+            # ------------------------------------------------
+
+            capacity = get_mbit_capacity(
+                original_image,
+                m
+            )
+
+
+            # ------------------------------------------------
+            # KAPASITAS PESAN ASLI
+            # ------------------------------------------------
+
+            plaintext_capacity = max(
+                0,
+                capacity
+                - encryption_overhead
+            )
+
+
+            # ------------------------------------------------
+            # DATA HASIL
+            # ------------------------------------------------
 
             result = {
-                "m": m,
-                "capacity": capacity,
-                "plaintext_capacity": plaintext_capacity,
-                "encrypted_size": encrypted_length,
-                "mse": None,
-                "psnr": None,
-                "status": "FAIL",
-                "error": ""
+
+                "m":
+                    m,
+
+                "capacity":
+                    capacity,
+
+                "plaintext_capacity":
+                    plaintext_capacity,
+
+                "encrypted_size":
+                    encrypted_length,
+
+                "mse":
+                    None,
+
+                "psnr":
+                    None,
+
+                "status":
+                    "FAIL",
+
+                "error":
+                    ""
+
             }
 
+
+            # ------------------------------------------------
+            # CEK KAPASITAS
+            # ------------------------------------------------
+
             if encrypted_length > capacity:
-                result["error"] = "Kapasitas tidak mencukupi."
-                comparison_results.append(result)
+
+                result["error"] = (
+                    "Kapasitas tidak mencukupi."
+                )
+
+
+                comparison_results.append(
+                    result
+                )
+
+
                 continue
 
+
+            # ------------------------------------------------
+            # ENCODE m-BIT
+            # ------------------------------------------------
+
             stego_candidate = encode_mbit_data(
-                original_image, encrypted_message, stego_key, m
+                original_image,
+                encrypted_message,
+                stego_key,
+                m
             )
 
-            mse = calculate_mse(original_image, stego_candidate)
-            psnr = calculate_psnr(original_image, stego_candidate)
+
+            # ------------------------------------------------
+            # MSE
+            # ------------------------------------------------
+
+            mse = calculate_mse(
+                original_image,
+                stego_candidate
+            )
+
+
+            # ------------------------------------------------
+            # PSNR
+            # ------------------------------------------------
+
+            psnr = calculate_psnr(
+                original_image,
+                stego_candidate
+            )
+
+
+            # ------------------------------------------------
+            # VERIFIKASI DECODE
+            # ------------------------------------------------
 
             try:
-                extracted_encrypted = decode_mbit_data(stego_candidate, stego_key, m)
-                extracted_message = decrypt_message(extracted_encrypted, stego_key)
-                extraction_ok = (extracted_message == message)
+
+                extracted_encrypted = (
+                    decode_mbit_data(
+                        stego_candidate,
+                        stego_key,
+                        m
+                    )
+                )
+
+
+                extracted_message = (
+                    decrypt_message(
+                        extracted_encrypted,
+                        stego_key
+                    )
+                )
+
+
+                extraction_ok = (
+                    extracted_message
+                    == message
+                )
+
+
             except Exception:
+
                 extraction_ok = False
 
+
+            # ------------------------------------------------
+            # STATUS
+            # ------------------------------------------------
+
             if extraction_ok:
-                result["status"] = "PASS"
+
+                result["status"] = (
+                    "PASS"
+                )
+
             else:
-                result["status"] = "FAIL"
-                result["error"] = "Verifikasi ekstraksi gagal."
 
-            result["mse"] = round(mse, 6)
-            result["psnr"] = round(psnr, 2)
-            comparison_results.append(result)
+                result["status"] = (
+                    "FAIL"
+                )
 
-            if m == selected_m and extraction_ok:
-                selected_stego_image = stego_candidate
+                result["error"] = (
+                    "Verifikasi ekstraksi gagal."
+                )
+
+
+            # ------------------------------------------------
+            # SIMPAN MSE DAN PSNR
+            # ------------------------------------------------
+
+            result["mse"] = round(
+                mse,
+                6
+            )
+
+
+            result["psnr"] = round(
+                psnr,
+                2
+            )
+
+
+            comparison_results.append(
+                result
+            )
+
+
+            # ------------------------------------------------
+            # SIMPAN STEGO MODE TERPILIH
+            # ------------------------------------------------
+
+            if (
+                m == selected_m
+                and extraction_ok
+            ):
+
+                selected_stego_image = (
+                    stego_candidate
+                )
+
+
+        # ====================================================
+        # VALIDASI MODE YANG DIPILIH
+        # ====================================================
 
         if selected_stego_image is None:
+
             selected_result = next(
-                (item for item in comparison_results if item["m"] == selected_m),
+                (
+                    item
+                    for item in comparison_results
+                    if item["m"]
+                    == selected_m
+                ),
                 None
             )
-            error_message = (
-                f"Mode {selected_m}-bit tidak dapat digunakan. {selected_result.get('error', '')}"
-                if selected_result else f"Mode {selected_m}-bit gagal."
-            )
+
+
+            if selected_result:
+
+                error_message = (
+                    f"Mode {selected_m}-bit "
+                    f"tidak dapat digunakan. "
+                    f"{selected_result.get('error', '')}"
+                )
+
+            else:
+
+                error_message = (
+                    f"Mode {selected_m}-bit gagal."
+                )
+
+
             return render_template(
                 "encode.html",
+
                 error=error_message,
-                comparison_results=comparison_results,
-                selected_m=selected_m
+
+                comparison_results=
+                    comparison_results,
+
+                selected_m=
+                    selected_m
             )
 
-        output_filename = f"stego_{os.path.splitext(filename)[0]}_{selected_m}bit.png"
-        output_path = os.path.join(app.config["OUTPUT_FOLDER"], output_filename)
-        selected_stego_image.save(output_path, format="PNG")
 
-        lsb_image = enhance_lsb_plane(selected_stego_image)
-        lsb_filename = f"lsb_{os.path.splitext(filename)[0]}_{selected_m}bit.png"
-        lsb_path = os.path.join(app.config["OUTPUT_FOLDER"], lsb_filename)
-        lsb_image.save(lsb_path, format="PNG")
+        # ====================================================
+        # NAMA FILE STEGO
+        # ====================================================
 
-        mse = calculate_mse(original_image, selected_stego_image)
-        psnr = calculate_psnr(original_image, selected_stego_image)
+        output_filename = (
+            "stego_"
+            + os.path.splitext(
+                filename
+            )[0]
+            + "_"
+            + str(selected_m)
+            + "bit.png"
+        )
 
-        cover_histogram = calculate_histogram(original_image)
-        stego_histogram = calculate_histogram(selected_stego_image)
 
-        jpeg_filename = f"jpeg_test_{os.path.splitext(filename)[0]}_{selected_m}bit.jpg"
-        jpeg_path = os.path.join(app.config["OUTPUT_FOLDER"], jpeg_filename)
-        save_as_jpeg(selected_stego_image, jpeg_path, quality=75)
+        output_path = os.path.join(
+            app.config["OUTPUT_FOLDER"],
+            output_filename
+        )
 
-        stego_data_uri = image_to_data_uri(selected_stego_image, "PNG")
-        lsb_data_uri = image_to_data_uri(lsb_image, "PNG")
-        jpeg_data_uri = file_to_data_uri(jpeg_path, "image/jpeg")
-        jpeg_data_base64 = file_to_base64(jpeg_path)
 
-        selected_capacity = get_mbit_capacity(original_image, selected_m)
-        selected_plaintext_capacity = max(0, selected_capacity - encryption_overhead)
+        # ====================================================
+        # SIMPAN STEGO IMAGE
+        # ====================================================
+
+        selected_stego_image.save(
+            output_path,
+            format="PNG"
+        )
+
+
+        # ====================================================
+        # ENHANCED LSB
+        # ====================================================
+
+        lsb_image = enhance_lsb_plane(
+            selected_stego_image
+        )
+
+
+        lsb_filename = (
+            "lsb_"
+            + os.path.splitext(
+                filename
+            )[0]
+            + "_"
+            + str(selected_m)
+            + "bit.png"
+        )
+
+
+        lsb_path = os.path.join(
+            app.config["OUTPUT_FOLDER"],
+            lsb_filename
+        )
+
+
+        lsb_image.save(
+            lsb_path,
+            format="PNG"
+        )
+
+
+        # ====================================================
+        # MSE MODE TERPILIH
+        # ====================================================
+
+        mse = calculate_mse(
+            original_image,
+            selected_stego_image
+        )
+
+
+        # ====================================================
+        # PSNR MODE TERPILIH
+        # ====================================================
+
+        psnr = calculate_psnr(
+            original_image,
+            selected_stego_image
+        )
+
+
+        # ====================================================
+        # HISTOGRAM
+        # ====================================================
+
+        cover_histogram = calculate_histogram(
+            original_image
+        )
+
+
+        stego_histogram = calculate_histogram(
+            selected_stego_image
+        )
+
+
+        # ====================================================
+        # JPEG RE-SAVE
+        # ====================================================
+
+        jpeg_filename = (
+            "jpeg_test_"
+            + os.path.splitext(
+                filename
+            )[0]
+            + "_"
+            + str(selected_m)
+            + "bit.jpg"
+        )
+
+
+        jpeg_path = os.path.join(
+            app.config["OUTPUT_FOLDER"],
+            jpeg_filename
+        )
+
+
+        save_as_jpeg(
+            selected_stego_image,
+            jpeg_path,
+            quality=75
+        )
+
+
+        # ====================================================
+        # BASE64 DATA URI
+        # ====================================================
+
+        stego_data_uri = image_to_data_uri(
+            selected_stego_image,
+            "PNG"
+        )
+
+
+        lsb_data_uri = image_to_data_uri(
+            lsb_image,
+            "PNG"
+        )
+
+
+        jpeg_data_uri = file_to_data_uri(
+            jpeg_path,
+            "image/jpeg"
+        )
+
+
+        jpeg_data_base64 = file_to_base64(
+            jpeg_path
+        )
+
+
+        # ====================================================
+        # KAPASITAS MODE TERPILIH
+        # ====================================================
+
+        selected_capacity = get_mbit_capacity(
+            original_image,
+            selected_m
+        )
+
+
+        selected_plaintext_capacity = max(
+            0,
+            selected_capacity
+            - encryption_overhead
+        )
+
 
         mode_statuses = []
+
         for result in comparison_results:
+
             if result["encrypted_size"] > result["capacity"]:
                 mode_status = "insufficient_capacity"
+
             elif result["status"] == "PASS":
                 mode_status = "pass"
+
             else:
                 mode_status = "fail"
 
@@ -518,6 +1135,7 @@ def encode():
                 "psnr_db": finite_metric(result["psnr"]),
                 "status": mode_status,
             })
+
 
         database_saved = save_run(
             {
@@ -539,52 +1157,164 @@ def encode():
             result_image=selected_stego_image
         )
 
+
+        # ====================================================
+        # RENDER HALAMAN
+        # ====================================================
+
         return render_template(
+
             "encode.html",
+
+
+            # ------------------------------------------------
+            # STATUS
+            # ------------------------------------------------
+
             success=True,
-            original_filename=filename,
-            output_filename=output_filename,
-            lsb_filename=lsb_filename,
-            jpeg_filename=jpeg_filename,
-            selected_m=selected_m,
-            message_length=message_length,
-            encrypted_length=encrypted_length,
-            capacity=selected_capacity,
-            plaintext_capacity=selected_plaintext_capacity,
-            mse=mse,
-            psnr=psnr,
-            cover_histogram=cover_histogram,
-            stego_histogram=stego_histogram,
-            original_message=message,
-            cover_data_uri=cover_data_uri,
-            stego_data_uri=stego_data_uri,
-            lsb_data_uri=lsb_data_uri,
-            jpeg_data_uri=jpeg_data_uri,
-            jpeg_data_base64=jpeg_data_base64,
-            comparison_results=comparison_results,
-            database_saved=database_saved,
+
+
+            # ------------------------------------------------
+            # FILE NAME
+            # ------------------------------------------------
+
+            original_filename=
+                filename,
+
+            output_filename=
+                output_filename,
+
+            lsb_filename=
+                lsb_filename,
+
+            jpeg_filename=
+                jpeg_filename,
+
+
+            # ------------------------------------------------
+            # MODE
+            # ------------------------------------------------
+
+            selected_m=
+                selected_m,
+
+
+            # ------------------------------------------------
+            # MESSAGE
+            # ------------------------------------------------
+
+            message_length=
+                message_length,
+
+            encrypted_length=
+                encrypted_length,
+
+
+            # ------------------------------------------------
+            # CAPACITY
+            # ------------------------------------------------
+
+            capacity=
+                selected_capacity,
+
+            plaintext_capacity=
+                selected_plaintext_capacity,
+
+
+            # ------------------------------------------------
+            # MSE / PSNR
+            # ------------------------------------------------
+
+            mse=
+                mse,
+
+            psnr=
+                psnr,
+
+
+            # ------------------------------------------------
+            # HISTOGRAM
+            # ------------------------------------------------
+
+            cover_histogram=
+                cover_histogram,
+
+            stego_histogram=
+                stego_histogram,
+
+
+            # ------------------------------------------------
+            # ORIGINAL MESSAGE
+            # ------------------------------------------------
+
+            original_message=
+                message,
+
+
+            # ------------------------------------------------
+            # IMAGE DATA
+            # ------------------------------------------------
+
+            cover_data_uri=
+                cover_data_uri,
+
+            stego_data_uri=
+                stego_data_uri,
+
+            lsb_data_uri=
+                lsb_data_uri,
+
+            jpeg_data_uri=
+                jpeg_data_uri,
+
+
+            # ------------------------------------------------
+            # JPEG DATA
+            # ------------------------------------------------
+
+            jpeg_data_base64=
+                jpeg_data_base64,
+
+
+            # ------------------------------------------------
+            # COMPARISON 1-4 BIT
+            # ------------------------------------------------
+
+            comparison_results=
+                comparison_results,
+
+            database_saved=
+                database_saved,
+
+
             error=None
+
         )
 
-    except Exception:
-        app.logger.exception("Single-image encoding failed.")
+
+    except Exception as e:
+
+        app.logger.exception(
+            "Single-image encoding failed."
+        )
+
         return render_template(
             "encode.html",
+
             error="Encoding gagal. Periksa gambar dan input lalu coba lagi."
         )
 
 
-# ============================================================
-# ENCODE BATCH (PROSES GAMBAR SECARA JAMAK)
-# ============================================================
-
-@app.route("/encode/batch", methods=["GET", "POST"])
+@app.route(
+    "/encode/batch",
+    methods=["POST"]
+)
 def encode_batch():
-    if request.method == "GET":
-        return render_template("encode_batch.html")
 
     try:
-        item_count = int(request.form.get("item_count", "0"))
+        item_count = int(
+            request.form.get("item_count", "0")
+        )
     except ValueError:
         item_count = 0
 
@@ -598,20 +1328,35 @@ def encode_batch():
     results = []
 
     for index in range(item_count):
-        image_file = request.files.get(f"image_{index}")
-        message = request.form.get(f"message_{index}", "")
-        stego_key = request.form.get(f"stego_key_{index}", "")
+        image_file = request.files.get(
+            f"image_{index}"
+        )
+        message = request.form.get(
+            f"message_{index}",
+            ""
+        )
+        stego_key = request.form.get(
+            f"stego_key_{index}",
+            ""
+        )
         compare_all_modes = (
-            request.form.get(f"compare_all_modes_{index}") == "on"
+            request.form.get(
+                f"compare_all_modes_{index}"
+            ) == "on"
         )
         image_name = secure_filename(
-            os.path.basename(image_file.filename if image_file else "")
+            os.path.basename(
+                image_file.filename if image_file else ""
+            )
         )
         selected_bits = None
 
         try:
             selected_bits = validate_m_bit(
-                request.form.get(f"lsb_bits_{index}", "1")
+                request.form.get(
+                    f"lsb_bits_{index}",
+                    "1"
+                )
             )
 
             if not image_file or not image_file.filename:
@@ -650,34 +1395,82 @@ def encode_batch():
                 filename_stem = os.path.splitext(image_name)[0]
                 output_prefix = f"{index + 1:02d}_{filename_stem}"
                 result.update({
-                    "output_filename": f"stego_{output_prefix}_{selected_bits}bit.png",
-                    "lsb_filename": f"lsb_{output_prefix}_{selected_bits}bit.png",
-                    "jpeg_filename": f"jpeg_test_{output_prefix}_{selected_bits}bit.jpg",
-                    "cover_data_uri": image_to_data_uri(result["original_image"], "PNG"),
-                    "stego_data_uri": image_to_data_uri(result["stego_image"], "PNG"),
-                    "lsb_data_uri": image_to_data_uri(result["lsb_image"], "PNG"),
-                    "jpeg_data_uri": image_to_data_uri(result["jpeg_image"], "JPEG"),
+                    "output_filename": (
+                        f"stego_{output_prefix}_{selected_bits}bit.png"
+                    ),
+                    "lsb_filename": (
+                        f"lsb_{output_prefix}_{selected_bits}bit.png"
+                    ),
+                    "jpeg_filename": (
+                        f"jpeg_test_{output_prefix}_{selected_bits}bit.jpg"
+                    ),
+                    "cover_data_uri": image_to_data_uri(
+                        result["original_image"],
+                        "PNG"
+                    ),
+                    "stego_data_uri": image_to_data_uri(
+                        result["stego_image"],
+                        "PNG"
+                    ),
+                    "lsb_data_uri": image_to_data_uri(
+                        result["lsb_image"],
+                        "PNG"
+                    ),
+                    "jpeg_data_uri": image_to_data_uri(
+                        result["jpeg_image"],
+                        "JPEG"
+                    ),
                 })
 
-                output_path = os.path.join(app.config["OUTPUT_FOLDER"], result["output_filename"])
-                lsb_path = os.path.join(app.config["OUTPUT_FOLDER"], result["lsb_filename"])
-                jpeg_path = os.path.join(app.config["OUTPUT_FOLDER"], result["jpeg_filename"])
+                output_path = os.path.join(
+                    app.config["OUTPUT_FOLDER"],
+                    result["output_filename"]
+                )
+                lsb_path = os.path.join(
+                    app.config["OUTPUT_FOLDER"],
+                    result["lsb_filename"]
+                )
+                jpeg_path = os.path.join(
+                    app.config["OUTPUT_FOLDER"],
+                    result["jpeg_filename"]
+                )
 
-                result["stego_image"].save(output_path, format="PNG")
-                result["lsb_image"].save(lsb_path, format="PNG")
-                save_as_jpeg(result["stego_image"], jpeg_path, quality=75)
+                result["stego_image"].save(
+                    output_path,
+                    format="PNG"
+                )
+                result["lsb_image"].save(
+                    lsb_path,
+                    format="PNG"
+                )
+                save_as_jpeg(
+                    result["stego_image"],
+                    jpeg_path,
+                    quality=75
+                )
 
                 with Image.open(jpeg_path) as opened_jpeg:
                     jpeg_image = opened_jpeg.convert("RGB")
 
                 result["jpeg_image"] = jpeg_image
-                result["jpeg_data_uri"] = image_to_data_uri(jpeg_image, "JPEG")
+                result["jpeg_data_uri"] = image_to_data_uri(
+                    jpeg_image,
+                    "JPEG"
+                )
 
                 jpeg_message_intact = False
+
                 try:
-                    jpeg_payload = decode_mbit_data(jpeg_image, stego_key, selected_bits)
+                    jpeg_payload = decode_mbit_data(
+                        jpeg_image,
+                        stego_key,
+                        selected_bits,
+                    )
                     jpeg_message_intact = (
-                        decrypt_message(jpeg_payload, stego_key) == message
+                        decrypt_message(
+                            jpeg_payload,
+                            stego_key,
+                        ) == message
                     )
                 except Exception:
                     jpeg_message_intact = False
@@ -685,7 +1478,11 @@ def encode_batch():
                 result["jpeg_message_intact"] = jpeg_message_intact
                 jpeg_run_data = {
                     "operation": "jpeg_test",
-                    "status": "success" if jpeg_message_intact else "partial",
+                    "status": (
+                        "success"
+                        if jpeg_message_intact
+                        else "partial"
+                    ),
                     "image_name": result["jpeg_filename"],
                     "image_width": jpeg_image.width,
                     "image_height": jpeg_image.height,
@@ -752,53 +1549,184 @@ def encode_batch():
                 "database_saved": False,
             })
 
-    return render_template("encode_batch_results.html", results=results)
+    return render_template(
+        "encode_batch_results.html",
+        results=results
+    )
 
 
 # ============================================================
 # JPEG RE-SAVE TEST
 # ============================================================
 
-@app.route("/jpeg-test", methods=["POST"])
+@app.route(
+    "/jpeg-test",
+    methods=["POST"]
+)
 def jpeg_test():
-    jpeg_filename = request.form.get("jpeg_filename", "")
-    stego_key = request.form.get("stego_key", "")
-    original_message = request.form.get("original_message", "")
-    jpeg_data_base64 = request.form.get("jpeg_data_base64", "")
-    lsb_bits_value = request.form.get("lsb_bits", "1")
+
+    # --------------------------------------------------------
+    # AMBIL DATA
+    # --------------------------------------------------------
+
+    jpeg_filename = request.form.get(
+        "jpeg_filename",
+        ""
+    )
+
+
+    stego_key = request.form.get(
+        "stego_key",
+        ""
+    )
+
+
+    original_message = request.form.get(
+        "original_message",
+        ""
+    )
+
+
+    jpeg_data_base64 = request.form.get(
+        "jpeg_data_base64",
+        ""
+    )
+
+
+    lsb_bits_value = request.form.get(
+        "lsb_bits",
+        "1"
+    )
+
+
+    # --------------------------------------------------------
+    # VALIDASI M-BIT
+    # --------------------------------------------------------
 
     try:
-        lsb_bits = validate_m_bit(lsb_bits_value)
-    except ValueError:
-        lsb_bits = 1
 
-    if not stego_key:
-        return render_template(
-            "jpeg_test.html",
-            success=False,
-            message_intact=False,
-            original_message=original_message,
-            extracted_message=None,
-            jpeg_filename=jpeg_filename,
-            selected_m=lsb_bits,
-            error="Stego-key tidak boleh kosong."
+        lsb_bits = validate_m_bit(
+            lsb_bits_value
         )
 
-    try:
-        if jpeg_data_base64:
-            jpeg_bytes = base64.b64decode(jpeg_data_base64)
-            jpeg_image = Image.open(BytesIO(jpeg_bytes)).convert("RGB")
-        else:
-            if not jpeg_filename:
-                raise ValueError("File JPEG tidak ditemukan.")
-            jpeg_path = os.path.join(app.config["OUTPUT_FOLDER"], jpeg_filename)
-            if not os.path.exists(jpeg_path):
-                raise ValueError("File JPEG tidak ditemukan.")
-            jpeg_image = Image.open(jpeg_path).convert("RGB")
+    except ValueError:
 
-        encrypted_message = decode_mbit_data(jpeg_image, stego_key, lsb_bits)
-        extracted_message = decrypt_message(encrypted_message, stego_key)
-        message_intact = (extracted_message == original_message)
+        lsb_bits = 1
+
+
+    # --------------------------------------------------------
+    # VALIDASI KEY
+    # --------------------------------------------------------
+
+    if not stego_key:
+
+        return render_template(
+            "jpeg_test.html",
+
+            success=False,
+
+            message_intact=False,
+
+            original_message=
+                original_message,
+
+            extracted_message=
+                None,
+
+            jpeg_filename=
+                jpeg_filename,
+
+            selected_m=
+                lsb_bits,
+
+            error=(
+                "Stego-key tidak boleh kosong."
+            )
+        )
+
+
+    try:
+
+        # ====================================================
+        # BACA JPEG
+        # ====================================================
+
+        if jpeg_data_base64:
+
+            jpeg_bytes = base64.b64decode(
+                jpeg_data_base64
+            )
+
+
+            jpeg_image = Image.open(
+                BytesIO(jpeg_bytes)
+            ).convert(
+                "RGB"
+            )
+
+
+        else:
+
+            # Fallback untuk penggunaan lokal.
+
+            if not jpeg_filename:
+
+                raise ValueError(
+                    "File JPEG tidak ditemukan."
+                )
+
+
+            jpeg_path = os.path.join(
+                app.config["OUTPUT_FOLDER"],
+                jpeg_filename
+            )
+
+
+            if not os.path.exists(
+                jpeg_path
+            ):
+
+                raise ValueError(
+                    "File JPEG tidak ditemukan."
+                )
+
+
+            jpeg_image = Image.open(
+                jpeg_path
+            ).convert(
+                "RGB"
+            )
+
+
+        # ====================================================
+        # DECODE M-BIT
+        # ====================================================
+
+        encrypted_message = decode_mbit_data(
+            jpeg_image,
+            stego_key,
+            lsb_bits
+        )
+
+
+        # ====================================================
+        # DEKRIPSI
+        # ====================================================
+
+        extracted_message = decrypt_message(
+            encrypted_message,
+            stego_key
+        )
+
+
+        # ====================================================
+        # BANDINKAN PESAN
+        # ====================================================
+
+        message_intact = (
+            extracted_message
+            == original_message
+        )
 
         database_saved = save_run(
             {
@@ -808,7 +1736,9 @@ def jpeg_test():
                 "image_width": jpeg_image.width,
                 "image_height": jpeg_image.height,
                 "selected_bits": lsb_bits,
-                "message_length_bytes": len(original_message.encode("utf-8")),
+                "message_length_bytes": len(
+                    original_message.encode("utf-8")
+                ),
                 "encrypted_payload_bytes": len(encrypted_message),
                 "extraction_success": True,
                 "jpeg_message_intact": message_intact,
@@ -816,28 +1746,92 @@ def jpeg_test():
             source_image=jpeg_image
         )
 
-        return render_template(
-            "jpeg_test.html",
-            success=True,
-            message_intact=message_intact,
-            original_message=original_message,
-            extracted_message=extracted_message,
-            jpeg_filename=jpeg_filename,
-            selected_m=lsb_bits,
-            database_saved=database_saved,
-            error=None if message_intact else "Pesan berhasil diekstrak, tetapi isinya berbeda dengan pesan asli."
+
+        if message_intact:
+
+            return render_template(
+                "jpeg_test.html",
+
+                success=True,
+
+                message_intact=True,
+
+                original_message=
+                    original_message,
+
+                extracted_message=
+                    extracted_message,
+
+                jpeg_filename=
+                    jpeg_filename,
+
+                selected_m=
+                    lsb_bits,
+
+                database_saved=
+                    database_saved,
+
+                error=None
+            )
+
+
+        else:
+
+            return render_template(
+                "jpeg_test.html",
+
+                success=True,
+
+                message_intact=False,
+
+                original_message=
+                    original_message,
+
+                extracted_message=
+                    extracted_message,
+
+                jpeg_filename=
+                    jpeg_filename,
+
+                selected_m=
+                    lsb_bits,
+
+                database_saved=
+                    database_saved,
+
+                error=(
+                    "Pesan berhasil diekstrak, "
+                    "tetapi isinya berbeda "
+                    "dengan pesan asli."
+                )
+            )
+
+
+    except Exception as e:
+
+        app.logger.exception(
+            "JPEG extraction failed."
         )
 
-    except Exception:
-        app.logger.exception("JPEG extraction failed.")
         return render_template(
             "jpeg_test.html",
+
             success=False,
+
             message_intact=False,
-            original_message=original_message,
-            extracted_message=None,
-            jpeg_filename=jpeg_filename,
-            selected_m=lsb_bits,
+
+            original_message=
+                original_message,
+
+            extracted_message=
+                None,
+
+            jpeg_filename=
+                jpeg_filename,
+
+            selected_m=
+                lsb_bits,
+
             error="Decode JPEG gagal. Periksa gambar dan stego-key."
         )
 
@@ -846,47 +1840,192 @@ def jpeg_test():
 # NORMAL DECODE
 # ============================================================
 
-@app.route("/decode", methods=["GET", "POST"])
+@app.route(
+    "/decode",
+    methods=[
+        "GET",
+        "POST"
+    ]
+)
 def decode():
+
+    # --------------------------------------------------------
+    # GET
+    # --------------------------------------------------------
+
     if request.method == "GET":
-        return render_template("decode.html")
 
-    image_file = request.files.get("image")
-    stego_key = request.form.get("stego_key", "")
+        return render_template(
+            "decode.html"
+        )
 
-    if not image_file or image_file.filename == "":
-        return render_template("decode.html", error="Silakan pilih stego image terlebih dahulu.")
 
-    if not allowed_file(image_file.filename):
-        return render_template("decode.html", error="Format gambar harus PNG atau BMP.")
+    # --------------------------------------------------------
+    # INPUT
+    # --------------------------------------------------------
+
+    image_file = request.files.get(
+        "image"
+    )
+
+
+    stego_key = request.form.get(
+        "stego_key",
+        ""
+    )
+
+
+    # --------------------------------------------------------
+    # VALIDASI FILE
+    # --------------------------------------------------------
+
+    if (
+        not image_file
+        or image_file.filename == ""
+    ):
+
+        return render_template(
+            "decode.html",
+
+            error=(
+                "Silakan pilih stego image "
+                "terlebih dahulu."
+            )
+        )
+
+
+    if not allowed_file(
+        image_file.filename
+    ):
+
+        return render_template(
+            "decode.html",
+
+            error=(
+                "Format gambar harus PNG atau BMP."
+            )
+        )
+
+
+    # --------------------------------------------------------
+    # VALIDASI KEY
+    # --------------------------------------------------------
 
     if not stego_key:
-        return render_template("decode.html", error="Stego-key tidak boleh kosong.")
+
+        return render_template(
+            "decode.html",
+
+            error=(
+                "Stego-key tidak boleh kosong."
+            )
+        )
+
 
     try:
-        filename = secure_filename(image_file.filename)
-        input_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-        image_file.save(input_path)
 
-        stego_image = Image.open(input_path).convert("RGB")
+        # ====================================================
+        # SIMPAN STEGO IMAGE
+        # ====================================================
+
+        filename = secure_filename(
+            image_file.filename
+        )
+
+
+        input_path = os.path.join(
+            app.config["UPLOAD_FOLDER"],
+            filename
+        )
+
+
+        image_file.save(
+            input_path
+        )
+
+
+        # ====================================================
+        # BUKA IMAGE
+        # ====================================================
+
+        stego_image = Image.open(
+            input_path
+        ).convert(
+            "RGB"
+        )
+
+
+        # ====================================================
+        # AUTO-DETECT 1-4 BIT
+        # ====================================================
 
         extracted_message = None
         detected_bits = None
         extracted_payload_bytes = None
 
-        for m in (1, 2, 3, 4):
+
+        for m in (
+            1,
+            2,
+            3,
+            4
+        ):
+
             try:
-                encrypted_message = decode_mbit_data(stego_image, stego_key, m)
-                candidate_message = decrypt_message(encrypted_message, stego_key)
-                extracted_message = candidate_message
-                extracted_payload_bytes = len(encrypted_message)
+
+                encrypted_message = (
+                    decode_mbit_data(
+                        stego_image,
+                        stego_key,
+                        m
+                    )
+                )
+
+
+                candidate_message = (
+                    decrypt_message(
+                        encrypted_message,
+                        stego_key
+                    )
+                )
+
+
+                extracted_message = (
+                    candidate_message
+                )
+
+                extracted_payload_bytes = len(
+                    encrypted_message
+                )
+
+
                 detected_bits = m
+
+
                 break
+
+
             except Exception:
+
                 continue
 
+
+        # ====================================================
+        # JIKA SEMUA GAGAL
+        # ====================================================
+
         if extracted_message is None:
-            raise ValueError("Gagal melakukan decode. Stego-key mungkin salah atau format/bit LSB tidak sesuai.")
+
+            raise ValueError(
+                "Gagal melakukan decode. "
+                "Stego-key mungkin salah atau "
+                "format/bit LSB tidak sesuai."
+            )
+
+
+        # ====================================================
+        # HASIL
+        # ====================================================
 
         database_saved = save_run(
             {
@@ -896,29 +2035,53 @@ def decode():
                 "image_width": stego_image.width,
                 "image_height": stego_image.height,
                 "detected_bits": detected_bits,
-                "message_length_bytes": len(extracted_message.encode("utf-8")),
+                "message_length_bytes": len(
+                    extracted_message.encode("utf-8")
+                ),
                 "encrypted_payload_bytes": extracted_payload_bytes,
                 "extraction_success": True,
             },
             source_image=stego_image
         )
 
-        decoded_image_uri = image_to_data_uri(stego_image, "PNG")
-
-        return render_template(
-            "decode.html",
-            success=True,
-            message=extracted_message,
-            filename=filename,
-            detected_bits=detected_bits,
-            image_data_uri=decoded_image_uri,
-            database_saved=database_saved
+        decoded_image_uri = image_to_data_uri(
+            stego_image,
+            "PNG"
         )
 
-    except Exception:
-        app.logger.exception("Image decoding failed.")
+        return render_template(
+
+            "decode.html",
+
+            success=True,
+
+            message=
+                extracted_message,
+
+            filename=
+                filename,
+
+            detected_bits=
+                detected_bits,
+
+            image_data_uri=
+                decoded_image_uri,
+
+            database_saved=
+                database_saved
+
+        )
+
+
+    except Exception as e:
+
+        app.logger.exception(
+            "Image decoding failed."
+        )
+
         return render_template(
             "decode.html",
+
             error="Decode gagal. Pastikan gambar dan stego-key benar."
         )
 
@@ -927,20 +2090,46 @@ def decode():
 # HISTORY
 # ============================================================
 
-@app.route("/history", methods=["GET", "POST"])
+@app.route(
+    "/history",
+    methods=["GET", "POST"]
+)
 @limiter.limit("5 per 15 minutes", methods=["POST"])
 def history():
-    history_access_key = os.environ.get("HISTORY_ACCESS_KEY") or ""
+
+    history_access_key = (
+        os.environ.get("HISTORY_ACCESS_KEY")
+        or ""
+    )
 
     if not history_access_key:
-        return render_template("history.html", setup_required=True)
+
+        return render_template(
+            "history.html",
+            setup_required=True
+        )
 
     if request.method == "POST":
-        submitted_csrf_token = request.form.get("csrf_token", "")
-        expected_csrf_token = session.pop("history_csrf_token", "")
 
-        if not expected_csrf_token or not compare_digest(submitted_csrf_token, expected_csrf_token):
+        submitted_csrf_token = request.form.get(
+            "csrf_token",
+            ""
+        )
+        expected_csrf_token = session.pop(
+            "history_csrf_token",
+            ""
+        )
+
+        if (
+            not expected_csrf_token
+            or not compare_digest(
+                submitted_csrf_token,
+                expected_csrf_token
+            )
+        ):
+
             session["history_csrf_token"] = token_urlsafe(32)
+
             return render_template(
                 "history.html",
                 auth_required=True,
@@ -948,23 +2137,40 @@ def history():
                 error="Form kedaluwarsa. Muat ulang halaman lalu coba lagi."
             ), 400
 
-        submitted_key = request.form.get("access_key", "")
+        submitted_key = request.form.get(
+            "access_key",
+            ""
+        )
 
-        if compare_digest(submitted_key, history_access_key):
+        if compare_digest(
+            submitted_key,
+            history_access_key
+        ):
+
             session.clear()
             session["history_authorized"] = True
             session.permanent = True
-            return redirect(url_for("history"))
+
+            return redirect(
+                url_for("history")
+            )
 
         return render_template(
             "history.html",
             auth_required=True,
-            csrf_token=session.setdefault("history_csrf_token", token_urlsafe(32)),
+            csrf_token=(
+                session.setdefault(
+                    "history_csrf_token",
+                    token_urlsafe(32)
+                )
+            ),
             error="Passcode riwayat tidak cocok."
         )
 
     if not session.get("history_authorized"):
+
         session["history_csrf_token"] = token_urlsafe(32)
+
         return render_template(
             "history.html",
             auth_required=True,
@@ -974,10 +2180,21 @@ def history():
     session["history_csrf_token"] = token_urlsafe(32)
 
     try:
+
         runs = list_recent_runs()
+
     except Exception as error:
-        app.logger.warning("Supabase history load failed (%s).", type(error).__name__)
-        return render_template("history.html", runs=[], load_error=True)
+
+        app.logger.warning(
+            "Supabase history load failed (%s).",
+            type(error).__name__
+        )
+
+        return render_template(
+            "history.html",
+            runs=[],
+            load_error=True
+        )
 
     return render_template(
         "history.html",
@@ -986,39 +2203,79 @@ def history():
     )
 
 
-@app.route("/history/logout", methods=["POST"])
+@app.route(
+    "/history/logout",
+    methods=["POST"]
+)
 def history_logout():
-    submitted_csrf_token = request.form.get("csrf_token", "")
-    expected_csrf_token = session.pop("history_csrf_token", "")
 
-    if not expected_csrf_token or not compare_digest(submitted_csrf_token, expected_csrf_token):
+    submitted_csrf_token = request.form.get(
+        "csrf_token",
+        ""
+    )
+    expected_csrf_token = session.pop(
+        "history_csrf_token",
+        ""
+    )
+
+    if (
+        not expected_csrf_token
+        or not compare_digest(
+            submitted_csrf_token,
+            expected_csrf_token
+        )
+    ):
+
         abort(400)
 
     session.clear()
-    return redirect(url_for("history"))
+
+    return redirect(
+        url_for("history")
+    )
 
 
-@app.route("/history/images/<uuid:run_id>/<kind>")
+@app.route(
+    "/history/images/<uuid:run_id>/<kind>"
+)
 def history_image(run_id, kind):
-    history_access_key = os.environ.get("HISTORY_ACCESS_KEY") or ""
+
+    history_access_key = (
+        os.environ.get("HISTORY_ACCESS_KEY")
+        or ""
+    )
 
     if (
         kind not in ("source", "result")
         or not history_access_key
         or not session.get("history_authorized")
     ):
+
         abort(404)
 
     object_path = f"{run_id}/{kind}.png"
 
     try:
-        image_bytes = download_history_image(object_path)
+
+        image_bytes = download_history_image(
+            object_path
+        )
+
     except Exception as error:
-        app.logger.warning("Supabase history image load failed (%s).", type(error).__name__)
+
+        app.logger.warning(
+            "Supabase history image load failed (%s).",
+            type(error).__name__
+        )
+
         abort(404)
 
-    response = send_file(BytesIO(image_bytes), mimetype="image/png")
+    response = send_file(
+        BytesIO(image_bytes),
+        mimetype="image/png"
+    )
     response.headers["Cache-Control"] = "private, no-store"
+
     return response
 
 
@@ -1027,6 +2284,7 @@ def history_image(run_id, kind):
 # ============================================================
 
 if __name__ == "__main__":
+
     app.run(
         debug=(
             not IS_PRODUCTION
