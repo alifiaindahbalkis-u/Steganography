@@ -134,7 +134,24 @@
                         {% if success %}
                         <div class="alert alert-success">
                             <i class="fa-solid fa-circle-check"></i>
-                            <div>Message extracted and decrypted successfully!</div>
+                            <div>
+                                Message extracted and decrypted successfully!
+                                <br>
+                                {% if database_saved %}
+                                    Riwayat berhasil disimpan.
+                                {% else %}
+                                    Riwayat belum tersimpan ke database.
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div style="margin: 18px 0; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: #f7f9fb; text-align: center;">
+                            <img
+                                src="{{ image_data_uri }}"
+                                alt="Gambar stego yang berhasil didecode"
+                                style="max-width: 100%; max-height: 440px; object-fit: contain;"
+                            >
+                            <div class="small-note" style="margin-top: 8px;">{{ filename }} · {{ detected_bits }}-bit LSB</div>
                         </div>
 
                         <div class="form-group">

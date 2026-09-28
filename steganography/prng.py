@@ -1,5 +1,6 @@
 import hashlib
 import random
+from array import array
 
 
 def create_rng(stego_key: str) -> random.Random:
@@ -46,3 +47,26 @@ def generate_positions(
     rng.shuffle(positions)
 
     return positions[:required_elements]
+
+
+class PositionSequence:
+
+    def __init__(self, total_elements: int, stego_key: str):
+        self.total_elements = total_elements
+        self.stego_key = stego_key
+        self._positions = None
+
+    def get_positions(self, required_elements: int):
+
+        if required_elements > self.total_elements:
+            raise ValueError(
+                "Data yang akan disisipkan melebihi kapasitas gambar."
+            )
+
+        if self._positions is None:
+            typecode = "I" if self.total_elements <= 0xFFFFFFFF else "Q"
+            positions = array(typecode, range(self.total_elements))
+            create_rng(self.stego_key).shuffle(positions)
+            self._positions = positions
+
+        return self._positions[:required_elements]

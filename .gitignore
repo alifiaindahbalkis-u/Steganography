@@ -17,6 +17,7 @@ instance/
 # Environment / secrets
 .env
 .env.*
+!.env.example
 
 # Uploaded files
 uploads/*

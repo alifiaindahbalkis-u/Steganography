@@ -220,8 +220,18 @@
                         <div class="alert alert-success">
                             <i class="fa-solid fa-circle-check" style="font-size: 18px; margin-top: 2px;"></i>
                             <div>
-                                <strong style="display: block; margin-bottom: 5px; font-size: 15px;">Decode JPEG Berhasil</strong>
-                                Data berhasil diekstrak secara utuh dari JPEG dan didekripsi menggunakan stego-key. Ini menunjukkan bahwa modifikasi LSB Anda bertahan dari kompresi kualitas 75.
+                                <strong style="display: block; margin-bottom: 5px; font-size: 15px;">Decode JPEG Selesai</strong>
+                                {% if message_intact %}
+                                    Pesan berhasil diekstrak dan cocok dengan pesan asli.
+                                {% else %}
+                                    Pesan berhasil diekstrak, tetapi berbeda dari pesan asli.
+                                {% endif %}
+                                <br>
+                                {% if database_saved %}
+                                    Riwayat berhasil disimpan.
+                                {% else %}
+                                    Riwayat belum tersimpan ke database.
+                                {% endif %}
                             </div>
                         </div>
 

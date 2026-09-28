@@ -57,7 +57,6 @@
         .analysis-card {
             transform: none !important;
             rotate: 0deg !important;
-            skew: none !important;
         }
 
         .image-card-main {
@@ -705,7 +704,7 @@
                                         selected
                                     {% endif %}
                                 >
-                                    1-bit LSB — Mode utama
+                                    1-bit LSB Mode utama
                                 </option>
 
                                 <option
@@ -839,6 +838,15 @@
                             </div>
 
                         </div>
+
+
+                        <p class="small-note" style="margin-bottom: 16px;">
+                            {% if database_saved %}
+                                Riwayat analisis berhasil disimpan.
+                            {% else %}
+                                Proses berhasil, tetapi riwayat belum tersimpan ke database.
+                            {% endif %}
+                        </p>
 
 
                         <!-- METRICS -->
@@ -1614,13 +1622,29 @@
                      HISTOGRAM SCRIPT
                 ================================================== -->
 
+                <script
+                    id="cover-histogram-data"
+                    type="application/json"
+                >{{ cover_histogram | tojson }}</script>
+
+                <script
+                    id="stego-histogram-data"
+                    type="application/json"
+                >{{ stego_histogram | tojson }}</script>
+
                 <script>
 
-                    const coverHist =
-                        {{ cover_histogram | tojson }};
+                    const coverHist = JSON.parse(
+                        document.getElementById(
+                            "cover-histogram-data"
+                        ).textContent
+                    );
 
-                    const stegoHist =
-                        {{ stego_histogram | tojson }};
+                    const stegoHist = JSON.parse(
+                        document.getElementById(
+                            "stego-histogram-data"
+                        ).textContent
+                    );
 
 
                     const labels =

@@ -1,6 +1,9 @@
 from PIL import Image
 
-from steganography.prng import generate_positions
+from steganography.prng import (
+    PositionSequence,
+    generate_positions,
+)
 
 from steganography.lsb import (
     bytes_to_bits,
@@ -247,7 +250,8 @@ def encode_mbit_data(
     image: Image.Image,
     payload: bytes,
     stego_key: str,
-    m: int
+    m: int,
+    position_sequence: PositionSequence | None = None,
 ) -> Image.Image:
     """
     Menyisipkan payload menggunakan
@@ -312,11 +316,16 @@ def encode_mbit_data(
     # POSISI PRNG
     # --------------------------------------------------------
 
-    positions = generate_positions(
-        total_channels,
-        required_channels,
-        stego_key
-    )
+    if position_sequence is None:
+        positions = generate_positions(
+            total_channels,
+            required_channels,
+            stego_key
+        )
+    else:
+        positions = position_sequence.get_positions(
+            required_channels
+        )
 
 
     # --------------------------------------------------------
@@ -393,7 +402,8 @@ def encode_mbit_data(
 def decode_mbit_data(
     image: Image.Image,
     stego_key: str,
-    m: int
+    m: int,
+    position_sequence: PositionSequence | None = None,
 ) -> bytes:
     """
     Mengekstrak payload menggunakan
@@ -459,11 +469,16 @@ def decode_mbit_data(
     ) // m
 
 
-    header_positions = generate_positions(
-        total_channels,
-        header_channels,
-        stego_key
-    )
+    if position_sequence is None:
+        header_positions = generate_positions(
+            total_channels,
+            header_channels,
+            stego_key
+        )
+    else:
+        header_positions = position_sequence.get_positions(
+            header_channels
+        )
 
 
     header_bits = (
@@ -523,11 +538,16 @@ def decode_mbit_data(
     # EKSTRAK DATA
     # ========================================================
 
-    positions = generate_positions(
-        total_channels,
-        required_channels,
-        stego_key
-    )
+    if position_sequence is None:
+        positions = generate_positions(
+            total_channels,
+            required_channels,
+            stego_key
+        )
+    else:
+        positions = position_sequence.get_positions(
+            required_channels
+        )
 
 
     data_bits = (

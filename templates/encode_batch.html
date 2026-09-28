@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encode Batch - StegoLab</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .batch-page { min-height: 75vh; padding: 42px 0 72px; background: var(--background); }
+        .batch-container { width: min(920px, calc(100% - 36px)); margin: 0 auto; }
+        .batch-heading { margin-bottom: 24px; }
+        .batch-heading h1 { margin: 8px 0; color: var(--dark); font-size: 30px; }
+        .batch-heading p { margin: 0; color: var(--muted); }
+        .image-job { margin-bottom: 18px; padding: 22px; border: 1px solid var(--border); border-radius: var(--radius-md); background: white; }
+        .image-job-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+        .image-job-heading h2 { margin: 0; color: var(--dark); font-size: 16px; }
+        .batch-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding-top: 17px; }
+        .image-count-picker { margin: 0 0 18px; padding: 15px; border: 1px solid var(--border); border-radius: var(--radius-md); background: white; }
+        .image-count-picker legend { padding: 0 5px; color: var(--dark); font-size: 13px; font-weight: 700; }
+        .image-count-options { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 9px; }
+        .image-count-choice { position: relative; cursor: pointer; }
+        .image-count-choice input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+        .image-count-choice span { display: grid; min-height: 48px; place-items: center; border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--dark); font-size: 15px; font-weight: 700; }
+        .image-count-choice input:checked + span { border-color: var(--primary); background: var(--primary-light); color: var(--primary); box-shadow: inset 0 0 0 1px var(--primary); }
+        .image-count-choice input:focus-visible + span { outline: 2px solid var(--primary); outline-offset: 2px; }
+        .batch-field { min-width: 0; }
+        .batch-field.full-width { grid-column: 1 / -1; }
+        .batch-field label, .bit-picker legend { display: block; margin-bottom: 7px; color: var(--dark); font-size: 13px; font-weight: 700; }
+        .batch-control { width: 100%; padding: 11px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: white; color: var(--text); font: inherit; }
+        .batch-control:focus { outline: 2px solid var(--primary-light); border-color: var(--primary); }
+        .batch-field textarea { min-height: 96px; resize: vertical; }
+        .bit-picker { grid-column: 1 / -1; margin: 0; padding: 0; border: 0; }
+        .bit-options { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 9px; }
+        .bit-choice { position: relative; cursor: pointer; }
+        .bit-choice input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+        .bit-choice span { display: grid; min-height: 52px; place-items: center; border: 1px solid var(--border); border-radius: var(--radius-sm); background: white; color: var(--dark); font-size: 13px; font-weight: 700; }
+        .bit-choice input:checked + span { border-color: var(--primary); background: var(--primary-light); color: var(--primary); box-shadow: inset 0 0 0 1px var(--primary); }
+        .bit-choice input:focus-visible + span { outline: 2px solid var(--primary); outline-offset: 2px; }
+        .comparison-option { display: flex; align-items: flex-start; gap: 8px; margin-top: 11px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+        .comparison-option input { flex: 0 0 auto; margin-top: 2px; accent-color: var(--primary); }
+        .file-selection { display: block; min-height: 18px; margin-top: 6px; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+        .batch-error { margin-bottom: 16px; padding: 13px 16px; border: 1px solid rgba(234, 88, 12, .25); border-radius: var(--radius-sm); background: var(--orange-light); color: var(--orange); }
+        .batch-actions { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 20px; }
+        .batch-submit { min-width: 220px; }
+        .batch-limit { color: var(--muted); font-size: 12px; }
+        @media (max-width: 640px) {
+            .batch-page { padding-top: 30px; }
+            .batch-heading h1 { font-size: 25px; }
+            .image-job { padding: 17px; }
+            .batch-fields { grid-template-columns: 1fr; }
+            .batch-field.full-width, .bit-picker { grid-column: auto; }
+            .batch-actions { align-items: stretch; flex-direction: column; }
+            .batch-submit { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="/" class="brand">
+                <div class="brand-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                <span>Stego<span class="brand-highlight">Lab</span></span>
+            </a>
+            <nav class="nav-links">
+                <a href="/">Home</a>
+                <a href="/encode" class="active">Encode</a>
+                <a href="/decode">Decode</a>
+            </nav>
+            <a href="/decode" class="nav-button">Decode <i class="fa-solid fa-arrow-right"></i></a>
+        </div>
+    </header>
+
+    <main class="batch-page">
+        <div class="batch-container">
+            <div class="batch-heading">
+                <span class="section-label">BATCH IMAGE ANALYSIS</span>
+                <h1>Encode beberapa gambar</h1>
+                <p>Setiap gambar memakai pesan, key, dan mode LSB masing-masing.</p>
+            </div>
+
+            {% if error %}<div class="batch-error" role="alert">{{ error }}</div>{% endif %}
+
+            <form id="batch-encode-form" action="{{ url_for('encode_batch') }}" method="post" enctype="multipart/form-data">
+                <input id="item-count" type="hidden" name="item_count" value="1">
+                <fieldset class="image-count-picker">
+                    <legend>Jumlah gambar yang akan diproses</legend>
+                    <div class="image-count-options">
+                        {% for count in range(1, 6) %}
+                        <label class="image-count-choice">
+                            <input type="radio" name="image-count" value="{{ count }}" {% if count == 1 %}checked{% endif %}>
+                            <span>{{ count }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </fieldset>
+                <div id="image-jobs"></div>
+
+                <template id="image-job-template">
+                    <article class="image-job" data-index="0">
+                        <div class="image-job-heading">
+                            <h2><i class="fa-solid fa-image" style="color: var(--primary);"></i> Gambar <span data-card-number>1</span></h2>
+                            <span class="section-label" data-card-position>ITEM 1</span>
+                        </div>
+                        <div class="batch-fields">
+                            <div class="batch-field full-width">
+                                <label data-label-for="image">Cover image (PNG/BMP)</label>
+                                <input class="batch-control" data-name="image" data-id="image" type="file" accept=".png,.bmp,image/png,image/bmp" required>
+                                <span class="file-selection" data-file-name>Pilih gambar</span>
+                            </div>
+                            <div class="batch-field full-width">
+                                <label data-label-for="message">Secret message</label>
+                                <textarea class="batch-control" data-name="message" data-id="message" rows="3" required placeholder="Pesan yang disisipkan ke gambar ini"></textarea>
+                            </div>
+                            <div class="batch-field full-width">
+                                <label data-label-for="stego_key">Stego key</label>
+                                <input class="batch-control" data-name="stego_key" data-id="stego_key" type="password" required autocomplete="new-password" placeholder="Key khusus untuk gambar ini">
+                            </div>
+                            <fieldset class="bit-picker">
+                                <legend>Mode LSB untuk gambar ini</legend>
+                                <div class="bit-options">
+                                    <label class="bit-choice"><input data-name="lsb_bits" type="radio" value="1" checked required><span>1-bit</span></label>
+                                    <label class="bit-choice"><input data-name="lsb_bits" type="radio" value="2" required><span>2-bit</span></label>
+                                    <label class="bit-choice"><input data-name="lsb_bits" type="radio" value="3" required><span>3-bit</span></label>
+                                    <label class="bit-choice"><input data-name="lsb_bits" type="radio" value="4" required><span>4-bit</span></label>
+                                </div>
+                                <label class="comparison-option">
+                                    <input data-name="compare_all_modes" type="checkbox" value="on">
+                                    <span>Bandingkan semua mode 1–4 bit untuk gambar ini (lebih lama)</span>
+                                </label>
+                            </fieldset>
+                        </div>
+                    </article>
+                </template>
+
+                <div class="batch-actions">
+                    <div>
+                        <div class="batch-limit" id="batch-count" aria-live="polite">1 dari 5 gambar</div>
+                    </div>
+                    <button class="btn btn-primary batch-submit" type="submit"><i class="fa-solid fa-lock"></i> Proses semua gambar</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        const jobsContainer = document.getElementById("image-jobs");
+        const jobTemplate = document.getElementById("image-job-template");
+        const countInput = document.getElementById("item-count");
+        const countLabel = document.getElementById("batch-count");
+
+        function refreshJobs(count) {
+            while (jobsContainer.children.length < count) {
+                jobsContainer.append(jobTemplate.content.firstElementChild.cloneNode(true));
+            }
+            while (jobsContainer.children.length > count) {
+                jobsContainer.lastElementChild.remove();
+            }
+            const jobs = [...jobsContainer.querySelectorAll(".image-job")];
+            jobs.forEach((job, index) => {
+                job.dataset.index = String(index);
+                job.querySelector("[data-card-number]").textContent = String(index + 1);
+                job.querySelector("[data-card-position]").textContent = `ITEM ${index + 1}`;
+                job.querySelectorAll("[data-name]").forEach((input) => {
+                    input.name = `${input.dataset.name}_${index}`;
+                    if (input.dataset.id) {
+                        input.id = `${input.dataset.id}_${index}`;
+                    }
+                });
+                job.querySelectorAll("[data-label-for]").forEach((label) => {
+                    label.htmlFor = `${label.dataset.labelFor}_${index}`;
+                });
+            });
+            countInput.value = String(jobs.length);
+            countLabel.textContent = `${jobs.length} dari 5 gambar`;
+        }
+
+        document.querySelectorAll('input[name="image-count"]').forEach((choice) => {
+            choice.addEventListener("change", () => {
+                refreshJobs(Number(choice.value));
+            });
+        });
+
+        jobsContainer.addEventListener("change", (event) => {
+            if (event.target.matches('input[type="file"]')) {
+                const display = event.target.closest(".batch-field").querySelector("[data-file-name]");
+                display.textContent = event.target.files[0]?.name || "Pilih gambar";
+            }
+        });
+
+        refreshJobs(1);
+    </script>
+</body>
+</html>
