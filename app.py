@@ -77,22 +77,33 @@ from steganography.jpeg_test import (
 
 load_dotenv()
 
-APP_ENV = os.environ.get("APP_ENV", "development").lower()
-IS_PRODUCTION = APP_ENV == "production" or os.environ.get("VERCEL") == "1"
+APP_ENV = os.environ.get(
+    "APP_ENV",
+    "development"
+).lower()
+
+IS_PRODUCTION = (
+    APP_ENV == "production"
+    or os.environ.get("VERCEL") == "1"
+)
+
+# Rate limit storage.
+# Jika RATELIMIT_STORAGE_URI belum tersedia,
+# gunakan memory storage.
 RATELIMIT_STORAGE_URI = os.environ.get(
     "RATELIMIT_STORAGE_URI",
     "memory://"
 )
 
-if IS_PRODUCTION and not RATELIMIT_STORAGE_URI.startswith(("redis://", "rediss://")):
-    raise RuntimeError(
-        "Production requires RATELIMIT_STORAGE_URI to point to shared Redis."
-    )
+flask_secret_key = os.environ.get(
+    "FLASK_SECRET_KEY"
+)
 
-flask_secret_key = os.environ.get("FLASK_SECRET_KEY")
 if not flask_secret_key:
-    raise RuntimeError("FLASK_SECRET_KEY must be configured.")
-
+    raise RuntimeError(
+        "FLASK_SECRET_KEY must be configured."
+    )
+    
 app = Flask(__name__)
 app.config.update(
     SECRET_KEY=flask_secret_key,
@@ -270,7 +281,8 @@ os.makedirs(
 
 
 # ============================================================
-# FUNGSI VALIDASI  pia
+# FUNGSI VALIDASI 
+# pia
 # ============================================================
 
 def allowed_file(filename):
@@ -1423,73 +1435,272 @@ def encode_batch():
             result["run_data"] = run_data
 
             if result["success"]:
-                filename_stem = os.path.splitext(image_name)[0]
-                output_prefix = f"{index + 1:02d}_{filename_stem}"
-                result.update({
-                    "output_filename": (
-                        f"stego_{output_prefix}_{selected_bits}bit.png"
-                    ),
-                    "lsb_filename": (
-                        f"lsb_{output_prefix}_{selected_bits}bit.png"
-                    ),
-                    "jpeg_filename": (
-                        f"jpeg_test_{output_prefix}_{selected_bits}bit.jpg"
-                    ),
-                    "cover_data_uri": image_to_data_uri(
-                        result["original_image"],
-                        "PNG"
-                    ),
-                    "stego_data_uri": image_to_data_uri(
-                        result["stego_image"],
-                        "PNG"
-                    ),
-                    "lsb_data_uri": image_to_data_uri(
-                        result["lsb_image"],
-                        "PNG"
-                    ),
-                    "jpeg_data_uri": image_to_data_uri(
-                        result["jpeg_image"],
-                        "JPEG"
-                    ),
-                })
+
+                filename_stem = os.path.splitext(
+                    image_name
+                )[0]
+
+                output_prefix = (
+                    f"{index + 1:02d}_{filename_stem}"
+                )
+
+
+                # =====================================================
+                # NAMA FILE HASIL
+                # =====================================================
+
+                result["output_filename"] = (
+                    f"stego_{output_prefix}_{selected_bits}bit.png"
+                )
+
+                result["lsb_filename"] = (
+                    f"lsb_{output_prefix}_{selected_bits}bit.png"
+                )
+
+                result["jpeg_filename"] = (
+                    f"jpeg_test_{output_prefix}_{selected_bits}bit.jpg"
+                )
+
+
+                # =====================================================
+                # DATA URI COVER / STEGO / LSB
+                # =====================================================
+
+                result["cover_data_uri"] = image_to_data_uri(
+                    result["original_image"],
+                    "PNG"
+                )
+
+                result["stego_data_uri"] = image_to_data_uri(
+                    result["stego_image"],
+                    "PNG"
+                )
+
+                result["lsb_data_uri"] = image_to_data_uri(
+                    result["lsb_image"],
+                    "PNG"
+                )
+
+
+                # =====================================================
+                # PATH OUTPUT
+                # =====================================================
 
                 output_path = os.path.join(
                     app.config["OUTPUT_FOLDER"],
                     result["output_filename"]
                 )
+
                 lsb_path = os.path.join(
                     app.config["OUTPUT_FOLDER"],
                     result["lsb_filename"]
                 )
+
                 jpeg_path = os.path.join(
                     app.config["OUTPUT_FOLDER"],
                     result["jpeg_filename"]
                 )
 
+
+                # =====================================================
+                # SIMPAN STEGO PNG
+                # =====================================================
+
                 result["stego_image"].save(
                     output_path,
                     format="PNG"
                 )
+
+
+                # =====================================================
+                # SIMPAN ENHANCED LSB
+                # =====================================================
+
                 result["lsb_image"].save(
                     lsb_path,
                     format="PNG"
                 )
+
+
+                # =====================================================
+                # JPEG RE-SAVE
+                # =====================================================
+
                 save_as_jpeg(
                     result["stego_image"],
                     jpeg_path,
                     quality=75
                 )
 
+
+                # =====================================================
+                # BUKA KEMBALI FILE JPEG
+                # =====================================================
+
                 with Image.open(jpeg_path) as opened_jpeg:
-                    jpeg_image = opened_jpeg.convert("RGB")
+
+                    jpeg_image = opened_jpeg.convert(
+                        "RGB"
+                    )
+
+
+                # =====================================================
+                # SIMPAN JPEG IMAGE KE RESULT
+                # =====================================================
 
                 result["jpeg_image"] = jpeg_image
+
+
+                # =====================================================
+                # JPEG DATA URI
+                # =====================================================
+
                 result["jpeg_data_uri"] = image_to_data_uri(
                     jpeg_image,
                     "JPEG"
                 )
 
+
+                # =====================================================
+                # JPEG BASE64
+                # DIPAKAI UNTUK HALAMAN JPEG DECODE TEST
+                # =====================================================
+
+                result["jpeg_data_base64"] = file_to_base64(
+                    jpeg_path
+                )
+
+
+                # =====================================================
+                # DATA YANG DIBAWA KE JPEG TEST
+                # =====================================================
+
+                result["original_message"] = message
+
+                result["lsb_bits"] = selected_bits
+
+
+                # =====================================================
+                # TEST DECODE JPEG
+                # =====================================================
+
                 jpeg_message_intact = False
+
+                try:
+
+                    jpeg_payload = decode_mbit_data(
+                        jpeg_image,
+                        stego_key,
+                        selected_bits
+                    )
+
+
+                    jpeg_message_intact = (
+                        decrypt_message(
+                            jpeg_payload,
+                            stego_key
+                        )
+                        == message
+                    )
+
+                except Exception:
+
+                    jpeg_message_intact = False
+
+
+                result["jpeg_message_intact"] = (
+                    jpeg_message_intact
+                )
+
+
+                # =====================================================
+                # DATA DATABASE JPEG
+                # =====================================================
+
+                jpeg_run_data = {
+
+                    "operation":
+                        "jpeg_test",
+
+                    "status":
+                        (
+                            "success"
+                            if jpeg_message_intact
+                            else "partial"
+                        ),
+
+                    "image_name":
+                        result["jpeg_filename"],
+
+                    "image_width":
+                        jpeg_image.width,
+
+                    "image_height":
+                        jpeg_image.height,
+
+                    "selected_bits":
+                        selected_bits,
+
+                    "message_length_bytes":
+                        result["message_length"],
+
+                    "encrypted_payload_bytes":
+                        result["encrypted_length"],
+
+                    "extraction_success":
+                        jpeg_message_intact,
+
+                    "jpeg_message_intact":
+                        jpeg_message_intact,
+
+                }
+
+
+                # =====================================================
+                # SIMPAN DATABASE
+                # =====================================================
+
+                with ThreadPoolExecutor(
+                    max_workers=2
+                ) as executor:
+
+                    encode_save = executor.submit(
+                        save_run,
+
+                        result["run_data"],
+
+                        result["mode_results"],
+
+                        source_image=
+                            result["original_image"],
+
+                        result_image=
+                            result["stego_image"],
+                    )
+
+
+                    jpeg_save = executor.submit(
+                        save_run,
+
+                        jpeg_run_data,
+
+                        source_image=
+                            jpeg_image,
+                    )
+
+
+                    result["database_saved"] = (
+                        encode_save.result()
+                    )
+
+                    result["jpeg_database_saved"] = (
+                        jpeg_save.result()
+                    )
+
+
+                results.append(result)
+
+                continue
 
                 try:
                     jpeg_payload = decode_mbit_data(
@@ -1592,9 +1803,15 @@ def encode_batch():
 
 @app.route(
     "/jpeg-test",
-    methods=["POST"]
+    methods=["GET", "POST"]
 )
 def jpeg_test():
+
+    if request.method == "GET":
+
+        return redirect(
+            url_for("encode")
+        )
 
     # --------------------------------------------------------
     # AMBIL DATA
@@ -1628,6 +1845,41 @@ def jpeg_test():
         "lsb_bits",
         "1"
     )
+    
+     # --------------------------------------------------------
+    # TAMPILKAN FORM JPEG DECODE TEST
+    # --------------------------------------------------------
+
+    if request.form.get("action") == "show_form":
+
+        try:
+            lsb_bits_preview = validate_m_bit(
+                lsb_bits_value
+            )
+        except ValueError:
+            lsb_bits_preview = 1
+
+        return render_template(
+            "jpeg_test.html",
+
+            success=None,
+
+            message_intact=None,
+
+            original_message=original_message,
+
+            extracted_message=None,
+
+            jpeg_filename=jpeg_filename,
+
+            selected_m=lsb_bits_preview,
+
+            jpeg_data_base64=jpeg_data_base64,
+
+            database_saved=False,
+
+            error=None,
+        )
 
 
     # --------------------------------------------------------

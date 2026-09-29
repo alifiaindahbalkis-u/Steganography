@@ -1,183 +1,1986 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hasil Batch Encode - StegoLab</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Hasil Batch Encode - StegoLab
+    </title>
+
+
+    <!-- =====================================================
+         GOOGLE FONT
+    ====================================================== -->
+
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+    >
+
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
+
+
+    <!-- =====================================================
+         FONT AWESOME
+    ====================================================== -->
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
+
+
+    <!-- =====================================================
+         MAIN CSS
+    ====================================================== -->
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+
+
+    <!-- =====================================================
+         CHART JS
+    ====================================================== -->
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/chart.js"
+    ></script>
+
+
     <style>
-        .batch-page { min-height: 75vh; padding: 42px 0 72px; background: var(--background); }
-        .batch-container { width: min(1180px, calc(100% - 36px)); margin: 0 auto; }
-        .batch-heading { display: flex; align-items: end; justify-content: space-between; gap: 20px; margin-bottom: 24px; }
-        .batch-heading h1 { margin: 8px 0; color: var(--dark); font-size: 30px; }
-        .batch-heading p { margin: 0; color: var(--muted); }
-        .result-item { margin-bottom: 22px; padding: 22px; border: 1px solid var(--border); border-radius: var(--radius-md); background: white; }
-        .result-item h2 { margin: 0; color: var(--dark); font-size: 19px; overflow-wrap: anywhere; }
-        .result-top { display: flex; align-items: start; justify-content: space-between; gap: 14px; margin-bottom: 18px; }
-        .result-state { color: var(--muted); font-size: 12px; }
-        .result-error { margin-top: 12px; padding: 12px; border: 1px solid #efc4ba; border-radius: 4px; background: #fff8f6; color: #9c3426; }
-        .result-metrics { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin-bottom: 20px; }
-        .result-metric { padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); }
-        .result-metric strong { display: block; color: var(--muted); font-size: 11px; }
-        .result-metric span { display: block; margin-top: 5px; color: var(--dark); font-size: 15px; font-weight: 700; overflow-wrap: anywhere; }
-        .image-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-        .image-panel { min-width: 0; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); }
-        .image-panel h3 { margin: 0 0 10px; color: var(--dark); font-size: 13px; }
-        .image-panel img { display: block; width: 100%; height: 220px; object-fit: contain; background: #f4f6f8; }
-        .result-section { margin-top: 22px; }
-        .result-section h3 { margin: 0 0 12px; color: var(--dark); font-size: 15px; }
-        .table-scroll { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); }
-        .metrics-table { width: 100%; border-collapse: collapse; min-width: 600px; text-align: left; }
-        .metrics-table th, .metrics-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 12px; }
-        .metrics-table th { background: #f6f8fa; color: var(--muted); }
-        .metrics-table tr:last-child td { border-bottom: 0; }
-        .status-pass { color: #217443; font-weight: 700; }
-        .status-fail { color: #a33c2d; font-weight: 700; }
-        .result-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
-        .batch-footer { display: flex; justify-content: space-between; gap: 12px; margin-top: 26px; }
-        @media (max-width: 760px) {
-            .batch-heading { align-items: start; flex-direction: column; }
-            .batch-heading h1 { font-size: 25px; }
-            .result-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-            .image-grid { grid-template-columns: 1fr; }
-            .result-item { padding: 16px; }
-            .batch-footer { flex-direction: column; }
-            .batch-footer .btn { width: 100%; text-align: center; }
+
+        /* =====================================================
+           PAGE
+        ====================================================== */
+
+        .batch-page {
+
+            min-height: 75vh;
+
+            padding: 42px 0 72px;
+
+            background:
+                var(--background);
         }
+
+
+        .batch-container {
+
+            width:
+                min(
+                    1180px,
+                    calc(100% - 36px)
+                );
+
+            margin:
+                0 auto;
+        }
+
+
+        /* =====================================================
+           HEADER
+        ====================================================== */
+
+        .batch-heading {
+
+            display:
+                flex;
+
+            align-items:
+                end;
+
+            justify-content:
+                space-between;
+
+            gap:
+                20px;
+
+            margin-bottom:
+                24px;
+        }
+
+
+        .batch-heading h1 {
+
+            margin:
+                8px 0;
+
+            color:
+                var(--dark);
+
+            font-size:
+                30px;
+        }
+
+
+        .batch-heading p {
+
+            margin:
+                0;
+
+            color:
+                var(--muted);
+
+            line-height:
+                1.6;
+        }
+
+
+        /* =====================================================
+           RESULT CARD
+        ====================================================== */
+
+        .result-item {
+
+            margin-bottom:
+                22px;
+
+            padding:
+                22px;
+
+            border:
+                1px solid var(--border);
+
+            border-radius:
+                var(--radius-md);
+
+            background:
+                white;
+        }
+
+
+        .result-item h2 {
+
+            margin:
+                0;
+
+            color:
+                var(--dark);
+
+            font-size:
+                19px;
+
+            overflow-wrap:
+                anywhere;
+        }
+
+
+        .result-top {
+
+            display:
+                flex;
+
+            align-items:
+                flex-start;
+
+            justify-content:
+                space-between;
+
+            gap:
+                14px;
+
+            margin-bottom:
+                18px;
+        }
+
+
+        .result-state {
+
+            color:
+                var(--muted);
+
+            font-size:
+                12px;
+
+            line-height:
+                1.7;
+        }
+
+
+        .result-error {
+
+            margin-top:
+                12px;
+
+            padding:
+                12px;
+
+            border:
+                1px solid #efc4ba;
+
+            border-radius:
+                4px;
+
+            background:
+                #fff8f6;
+
+            color:
+                #9c3426;
+
+            line-height:
+                1.5;
+        }
+
+
+        /* =====================================================
+           METRICS
+        ====================================================== */
+
+        .result-metrics {
+
+            display:
+                grid;
+
+            grid-template-columns:
+                repeat(
+                    5,
+                    minmax(0, 1fr)
+                );
+
+            gap:
+                10px;
+
+            margin-bottom:
+                20px;
+        }
+
+
+        .result-metric {
+
+            padding:
+                12px;
+
+            border:
+                1px solid var(--border);
+
+            border-radius:
+                var(--radius-sm);
+
+            background:
+                white;
+        }
+
+
+        .result-metric strong {
+
+            display:
+                block;
+
+            color:
+                var(--muted);
+
+            font-size:
+                11px;
+
+            font-weight:
+                700;
+        }
+
+
+        .result-metric span {
+
+            display:
+                block;
+
+            margin-top:
+                5px;
+
+            color:
+                var(--dark);
+
+            font-size:
+                15px;
+
+            font-weight:
+                700;
+
+            overflow-wrap:
+                anywhere;
+        }
+
+
+        /* =====================================================
+           IMAGE GRID
+        ====================================================== */
+
+        .image-grid {
+
+            display:
+                grid;
+
+            grid-template-columns:
+                repeat(
+                    2,
+                    minmax(0, 1fr)
+                );
+
+            gap:
+                14px;
+        }
+
+
+        .image-panel {
+
+            min-width:
+                0;
+
+            padding:
+                12px;
+
+            border:
+                1px solid var(--border);
+
+            border-radius:
+                var(--radius-sm);
+
+            background:
+                white;
+        }
+
+
+        .image-panel h3 {
+
+            margin:
+                0 0 10px;
+
+            color:
+                var(--dark);
+
+            font-size:
+                13px;
+        }
+
+
+        .image-panel img {
+
+            display:
+                block;
+
+            width:
+                100%;
+
+            height:
+                220px;
+
+            object-fit:
+                contain;
+
+            background:
+                #f4f6f8;
+
+            border-radius:
+                6px;
+        }
+
+
+        /* =====================================================
+           JPEG PANEL
+        ====================================================== */
+
+        .jpeg-panel {
+
+            min-width:
+                0;
+
+            padding:
+                12px;
+
+            border:
+                1px solid #d7e3f7;
+
+            border-radius:
+                var(--radius-sm);
+
+            background:
+                #f8fbff;
+        }
+
+
+        .jpeg-panel h3 {
+
+            margin:
+                0 0 10px;
+
+            color:
+                var(--dark);
+
+            font-size:
+                13px;
+        }
+
+
+        .jpeg-image-link {
+
+            display:
+                block;
+
+            text-decoration:
+                none;
+        }
+
+
+        .jpeg-image-link img {
+
+            display:
+                block;
+
+            width:
+                100%;
+
+            height:
+                220px;
+
+            object-fit:
+                contain;
+
+            background:
+                white;
+
+            border:
+                1px solid var(--border);
+
+            border-radius:
+                6px;
+
+            transition:
+                transform 0.15s ease;
+        }
+
+
+        .jpeg-image-link:hover img {
+
+            transform:
+                scale(1.01);
+        }
+
+
+        .jpeg-meta {
+
+            margin-top:
+                10px;
+
+            color:
+                var(--muted);
+
+            font-size:
+                12px;
+
+            line-height:
+                1.6;
+        }
+
+
+        /* =====================================================
+           SECTIONS
+        ====================================================== */
+
+        .result-section {
+
+            margin-top:
+                22px;
+        }
+
+
+        .result-section h3 {
+
+            margin:
+                0 0 12px;
+
+            color:
+                var(--dark);
+
+            font-size:
+                15px;
+        }
+
+
+        /* =====================================================
+           TABLE
+        ====================================================== */
+
+        .table-scroll {
+
+            overflow-x:
+                auto;
+
+            border:
+                1px solid var(--border);
+
+            border-radius:
+                var(--radius-sm);
+        }
+
+
+        .metrics-table {
+
+            width:
+                100%;
+
+            border-collapse:
+                collapse;
+
+            min-width:
+                600px;
+
+            text-align:
+                left;
+        }
+
+
+        .metrics-table th,
+        .metrics-table td {
+
+            padding:
+                10px 12px;
+
+            border-bottom:
+                1px solid var(--border);
+
+            font-size:
+                12px;
+
+            line-height:
+                1.5;
+        }
+
+
+        .metrics-table th {
+
+            background:
+                #f6f8fa;
+
+            color:
+                var(--muted);
+
+            font-weight:
+                700;
+        }
+
+
+        .metrics-table tr:last-child td {
+
+            border-bottom:
+                0;
+        }
+
+
+        /* =====================================================
+           STATUS
+        ====================================================== */
+
+        .status-pass {
+
+            color:
+                #217443;
+
+            font-weight:
+                700;
+        }
+
+
+        .status-fail {
+
+            color:
+                #a33c2d;
+
+            font-weight:
+                700;
+        }
+
+
+        /* =====================================================
+           ACTIONS
+        ====================================================== */
+
+        .result-actions {
+
+            display:
+                flex;
+
+            flex-wrap:
+                wrap;
+
+            gap:
+                10px;
+
+            margin-top:
+                18px;
+        }
+
+
+        /*
+         * Tombol untuk masuk ke halaman
+         * JPEG Decode Test
+         */
+
+        .jpeg-test-button {
+
+            display:
+                inline-flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            gap:
+                8px;
+
+            padding:
+                10px 16px;
+
+            border:
+                0;
+
+            border-radius:
+                8px;
+
+            background:
+                #111827;
+
+            color:
+                white;
+
+            font-family:
+                inherit;
+
+            font-size:
+                13px;
+
+            font-weight:
+                700;
+
+            cursor:
+                pointer;
+
+            transition:
+                transform 0.15s ease,
+                opacity 0.15s ease;
+        }
+
+
+        .jpeg-test-button:hover {
+
+            opacity:
+                0.92;
+
+            transform:
+                translateY(-1px);
+        }
+
+
+        .jpeg-download-button {
+
+            display:
+                inline-flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            gap:
+                8px;
+
+            padding:
+                10px 16px;
+
+            border:
+                1px solid var(--border);
+
+            border-radius:
+                8px;
+
+            background:
+                white;
+
+            color:
+                var(--dark);
+
+            text-decoration:
+                none;
+
+            font-size:
+                13px;
+
+            font-weight:
+                700;
+        }
+
+
+        .jpeg-download-button:hover {
+
+            text-decoration:
+                none;
+        }
+
+
+        /* =====================================================
+           FOOTER
+        ====================================================== */
+
+        .batch-footer {
+
+            display:
+                flex;
+
+            justify-content:
+                space-between;
+
+            gap:
+                12px;
+
+            margin-top:
+                26px;
+        }
+
+
+        /* =====================================================
+           RESPONSIVE
+        ====================================================== */
+
+        @media (max-width: 760px) {
+
+            .batch-heading {
+
+                align-items:
+                    flex-start;
+
+                flex-direction:
+                    column;
+            }
+
+
+            .batch-heading h1 {
+
+                font-size:
+                    25px;
+            }
+
+
+            .result-metrics {
+
+                grid-template-columns:
+                    repeat(
+                        2,
+                        minmax(0, 1fr)
+                    );
+            }
+
+
+            .image-grid {
+
+                grid-template-columns:
+                    1fr;
+            }
+
+
+            .result-item {
+
+                padding:
+                    16px;
+            }
+
+
+            .batch-footer {
+
+                flex-direction:
+                    column;
+            }
+
+
+            .batch-footer .btn {
+
+                width:
+                    100%;
+
+                text-align:
+                    center;
+            }
+
+
+            .result-actions {
+
+                flex-direction:
+                    column;
+            }
+
+
+            .jpeg-test-button,
+            .jpeg-download-button {
+
+                width:
+                    100%;
+            }
+
+        }
+
     </style>
+
 </head>
+
+
 <body>
+
+
+    <!-- =====================================================
+         NAVBAR
+    ====================================================== -->
+
     <header class="navbar">
+
         <div class="nav-container">
-            <a href="/" class="brand">
-                <div class="brand-icon"><i class="fa-solid fa-shield-halved"></i></div>
-                <span>Stego<span class="brand-highlight">Lab</span></span>
+
+
+            <!-- BRAND -->
+
+            <a
+                href="/"
+                class="brand"
+            >
+
+                <div class="brand-icon">
+
+                    <i
+                        class="fa-solid fa-shield-halved"
+                    ></i>
+
+                </div>
+
+
+                <span>
+
+                    Stego
+
+                    <span class="brand-highlight">
+                        Lab
+                    </span>
+
+                </span>
+
             </a>
+
+
+            <!-- NAVIGATION -->
+
             <nav class="nav-links">
-                <a href="/">Home</a>
-                <a href="/encode" class="active">Encode</a>
-                <a href="/decode">Decode</a>
+
+                <a href="/">
+                    Home
+                </a>
+
+                <a
+                    href="/encode"
+                    class="active"
+                >
+                    Encode
+                </a>
+
+                <a href="/decode">
+                    Decode
+                </a>
+
             </nav>
-            <a href="/decode" class="nav-button">Decode <i class="fa-solid fa-arrow-right"></i></a>
+
+
+            <!-- DECODE BUTTON -->
+
+            <a
+                href="/decode"
+                class="nav-button"
+            >
+
+                Decode
+
+                <i
+                    class="fa-solid fa-arrow-right"
+                ></i>
+
+            </a>
+
         </div>
+
     </header>
 
+
+
+    <!-- =====================================================
+         MAIN CONTENT
+    ====================================================== -->
+
     <main class="batch-page">
+
         <div class="batch-container">
+
+
+            <!-- =================================================
+                 PAGE HEADING
+            ================================================== -->
+
             <div class="batch-heading">
+
                 <div>
-                    <span class="section-label">HASIL AUDIT BATCH</span>
-                    <h1>Hasil proses gambar</h1>
-                    <p>{{ results|length }} gambar diproses secara independen. Riwayat tiap operasi dicatat per gambar.</p>
+
+                    <span class="section-label">
+                        HASIL AUDIT BATCH
+                    </span>
+
+
+                    <h1>
+                        Hasil proses gambar
+                    </h1>
+
+
+                    <p>
+
+                        {{ results|length }}
+                        gambar diproses secara independen.
+                        Riwayat tiap operasi dicatat per gambar.
+
+                    </p>
+
                 </div>
+
             </div>
+
+
+
+            <!-- =================================================
+                 LOOP RESULT
+            ================================================== -->
 
             {% for result in results %}
+
             <article class="result-item">
+
+
+                <!-- =================================================
+                     RESULT TITLE
+                ================================================== -->
+
                 <div class="result-top">
+
                     <div>
-                        <span class="section-label">GAMBAR {{ loop.index }}</span>
-                        <h2>{{ result.filename }}</h2>
+
+                        <span class="section-label">
+
+                            GAMBAR
+                            {{ loop.index }}
+
+                        </span>
+
+
+                        <h2>
+                            {{ result.filename }}
+                        </h2>
+
                     </div>
+
+
                     {% if result.success %}
-                    <span class="status-pass"><i class="fa-solid fa-circle-check"></i> BERHASIL</span>
+
+                        <span class="status-pass">
+
+                            <i
+                                class="fa-solid fa-circle-check"
+                            ></i>
+
+                            BERHASIL
+
+                        </span>
+
                     {% else %}
-                    <span class="status-fail"><i class="fa-solid fa-circle-xmark"></i> GAGAL</span>
+
+                        <span class="status-fail">
+
+                            <i
+                                class="fa-solid fa-circle-xmark"
+                            ></i>
+
+                            GAGAL
+
+                        </span>
+
                     {% endif %}
+
                 </div>
 
-                {% if result.error %}<div class="result-error">{{ result.error }}</div>{% endif %}
+
+
+                <!-- =================================================
+                     ERROR
+                ================================================== -->
+
+                {% if result.error %}
+
+                    <div class="result-error">
+
+                        {{ result.error }}
+
+                    </div>
+
+                {% endif %}
+
+
+
+                <!-- =================================================
+                     DATABASE STATUS
+                ================================================== -->
+
                 <div class="result-state">
-                    {% if result.database_saved %}Riwayat encode tercatat.{% else %}Riwayat encode belum tersimpan.{% endif %}
-                    {% if result.success %}
-                        {% if result.jpeg_database_saved %}Riwayat uji JPEG tercatat.{% else %}Riwayat uji JPEG belum tersimpan.{% endif %}
+
+                    {% if result.database_saved %}
+
+                        Riwayat encode tercatat.
+
+                    {% else %}
+
+                        Riwayat encode belum tersimpan.
+
                     {% endif %}
+
+
+                    {% if result.success %}
+
+                        {% if result.jpeg_database_saved %}
+
+                            <br>
+                            Riwayat uji JPEG tercatat.
+
+                        {% else %}
+
+                            <br>
+                            Riwayat uji JPEG belum tersimpan.
+
+                        {% endif %}
+
+                    {% endif %}
+
                 </div>
+
+
 
                 {% if result.success %}
-                <div class="result-metrics" style="margin-top: 16px;">
-                    <div class="result-metric"><strong>MODE TERPILIH</strong><span>{{ result.selected_m }}-bit</span></div>
-                    <div class="result-metric"><strong>PANJANG PESAN</strong><span>{{ result.message_length }} byte</span></div>
-                    <div class="result-metric"><strong>KAPASITAS</strong><span>{{ result.capacity }} byte</span></div>
-                    <div class="result-metric"><strong>MSE</strong><span>{{ result.mse }}</span></div>
-                    <div class="result-metric"><strong>PSNR</strong><span>{{ result.psnr }} dB</span></div>
+
+
+                <!-- =================================================
+                     METRICS
+                ================================================== -->
+
+                <div
+                    class="result-metrics"
+                    style="margin-top: 16px;"
+                >
+
+
+                    <!-- MODE -->
+
+                    <div class="result-metric">
+
+                        <strong>
+                            MODE TERPILIH
+                        </strong>
+
+                        <span>
+
+                            {{ result.selected_m }}-bit
+
+                        </span>
+
+                    </div>
+
+
+                    <!-- MESSAGE LENGTH -->
+
+                    <div class="result-metric">
+
+                        <strong>
+                            PANJANG PESAN
+                        </strong>
+
+                        <span>
+
+                            {{ result.message_length }}
+                            byte
+
+                        </span>
+
+                    </div>
+
+
+                    <!-- CAPACITY -->
+
+                    <div class="result-metric">
+
+                        <strong>
+                            KAPASITAS
+                        </strong>
+
+                        <span>
+
+                            {{ result.capacity }}
+                            byte
+
+                        </span>
+
+                    </div>
+
+
+                    <!-- MSE -->
+
+                    <div class="result-metric">
+
+                        <strong>
+                            MSE
+                        </strong>
+
+                        <span>
+
+                            {{ result.mse }}
+
+                        </span>
+
+                    </div>
+
+
+                    <!-- PSNR -->
+
+                    <div class="result-metric">
+
+                        <strong>
+                            PSNR
+                        </strong>
+
+                        <span>
+
+                            {{ result.psnr }}
+                            dB
+
+                        </span>
+
+                    </div>
+
                 </div>
+
+
+
+                <!-- =================================================
+                     IMAGE RESULTS
+                ================================================== -->
 
                 <div class="image-grid">
-                    <section class="image-panel"><h3>Cover asli</h3><img src="{{ result.cover_data_uri }}" alt="Cover {{ result.filename }}" loading="lazy"></section>
-                    <section class="image-panel"><h3>Stego PNG</h3><img src="{{ result.stego_data_uri }}" alt="Hasil stego {{ result.filename }}" loading="lazy"></section>
-                    <section class="image-panel"><h3>Visualisasi LSB</h3><img src="{{ result.lsb_data_uri }}" alt="Visualisasi LSB {{ result.filename }}" loading="lazy"></section>
-                    <section class="image-panel"><h3>JPEG quality 75 · {% if result.jpeg_message_intact %}<span class="status-pass">pesan utuh</span>{% else %}<span class="status-fail">pesan berubah/tidak terbaca</span>{% endif %}</h3><img src="{{ result.jpeg_data_uri }}" alt="Hasil JPEG {{ result.filename }}" loading="lazy"></section>
+
+
+                    <!-- =================================================
+                         COVER
+                    ================================================== -->
+
+                    <section class="image-panel">
+
+                        <h3>
+
+                            Cover asli
+
+                        </h3>
+
+
+                        <img
+                            src="{{ result.cover_data_uri }}"
+                            alt="Cover {{ result.filename }}"
+                            loading="lazy"
+                        >
+
+                    </section>
+
+
+
+                    <!-- =================================================
+                         STEGO PNG
+                    ================================================== -->
+
+                    <section class="image-panel">
+
+                        <h3>
+
+                            Stego PNG
+
+                        </h3>
+
+
+                        <img
+                            src="{{ result.stego_data_uri }}"
+                            alt="Hasil stego {{ result.filename }}"
+                            loading="lazy"
+                        >
+
+                    </section>
+
+
+
+                    <!-- =================================================
+                         LSB
+                    ================================================== -->
+
+                    <section class="image-panel">
+
+                        <h3>
+
+                            Visualisasi LSB
+
+                        </h3>
+
+
+                        <img
+                            src="{{ result.lsb_data_uri }}"
+                            alt="Visualisasi LSB {{ result.filename }}"
+                            loading="lazy"
+                        >
+
+                    </section>
+
+
+
+                    <!-- =================================================
+                         JPEG
+                    ================================================== -->
+
+                    <section class="jpeg-panel">
+
+                        <h3>
+
+                            JPEG Re-save · Quality 75
+
+                            {% if result.jpeg_message_intact %}
+
+                                <span class="status-pass">
+
+                                    · pesan utuh
+
+                                </span>
+
+                            {% else %}
+
+                                <span class="status-fail">
+
+                                    · pesan berubah/tidak terbaca
+
+                                </span>
+
+                            {% endif %}
+
+                        </h3>
+
+
+                        {% if result.jpeg_data_uri %}
+
+
+                            <a
+                                href="{{ result.jpeg_data_uri }}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="jpeg-image-link"
+                                title="Klik untuk melihat JPEG"
+                            >
+
+                                <img
+                                    src="{{ result.jpeg_data_uri }}"
+                                    alt="Hasil JPEG {{ result.filename }}"
+                                    loading="lazy"
+                                >
+
+                            </a>
+
+
+                            <div class="jpeg-meta">
+
+                                Format:
+                                <strong>
+                                    JPEG
+                                </strong>
+
+                                &nbsp; | &nbsp;
+
+                                Quality:
+                                <strong>
+                                    75
+                                </strong>
+
+                                <br>
+
+                                Gambar JPEG hasil re-save
+                                ditampilkan di atas.
+
+                            </div>
+
+
+                        {% else %}
+
+
+                            <div
+                                style="
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    height: 220px;
+                                    background: white;
+                                    border: 1px solid var(--border);
+                                    border-radius: 6px;
+                                    color: var(--muted);
+                                    font-size: 13px;
+                                "
+                            >
+
+                                Hasil JPEG tidak tersedia.
+
+                            </div>
+
+
+                        {% endif %}
+
+                    </section>
+
                 </div>
+
+
+
+                <!-- =================================================
+                     ACTION BUTTONS
+                ================================================== -->
 
                 <div class="result-actions">
-                    <a class="btn btn-primary" href="{{ result.stego_data_uri }}" download="{{ result.output_filename }}"><i class="fa-solid fa-download"></i> Download stego PNG</a>
-                    <a class="btn btn-secondary" href="{{ result.jpeg_data_uri }}" download="{{ result.jpeg_filename }}"><i class="fa-solid fa-download"></i> Download JPEG test</a>
+
+
+                    <!-- =================================================
+                         DOWNLOAD STEGO PNG
+                    ================================================== -->
+
+                    <a
+                        class="btn btn-primary"
+                        href="{{ result.stego_data_uri }}"
+                        download="{{ result.output_filename }}"
+                    >
+
+                        <i
+                            class="fa-solid fa-download"
+                        ></i>
+
+                        Download stego PNG
+
+                    </a>
+
+
+
+                    {% if result.jpeg_data_uri %}
+
+
+                        <!-- =================================================
+                             UJI DECODE JPEG
+                             INI YANG MASUK KE JPEG DECODE TEST
+                        ================================================== -->
+
+                        <form
+                            action="/jpeg-test"
+                            method="post"
+                            style="margin: 0;"
+                        >
+
+
+                            <!-- ACTION -->
+
+                            <input
+                                type="hidden"
+                                name="action"
+                                value="show_form"
+                            >
+
+
+                            <!-- JPEG FILENAME -->
+
+                            <input
+                                type="hidden"
+                                name="jpeg_filename"
+                                value="{{ result.jpeg_filename }}"
+                            >
+
+
+                            <!-- ORIGINAL MESSAGE -->
+
+                            <input
+                                type="hidden"
+                                name="original_message"
+                                value="{{ result.original_message }}"
+                            >
+
+
+                            <!-- JPEG BASE64 -->
+
+                            <input
+                                type="hidden"
+                                name="jpeg_data_base64"
+                                value="{{ result.jpeg_data_base64 }}"
+                            >
+
+
+                            <!-- LSB BITS -->
+
+                            <input
+                                type="hidden"
+                                name="lsb_bits"
+                                value="{{ result.lsb_bits }}"
+                            >
+
+
+                            <!-- BUTTON -->
+
+                            <button
+                                type="submit"
+                                class="jpeg-test-button"
+                            >
+
+                                <i
+                                    class="fa-solid fa-file-image"
+                                ></i>
+
+                                Uji Decode JPEG
+
+                            </button>
+
+                        </form>
+
+
+
+                        <!-- =================================================
+                             DOWNLOAD JPEG
+                        ================================================== -->
+
+                        <a
+                            class="jpeg-download-button"
+                            href="{{ result.jpeg_data_uri }}"
+                            download="{{ result.jpeg_filename }}"
+                        >
+
+                            <i
+                                class="fa-solid fa-download"
+                            ></i>
+
+                            Download JPEG Test
+
+                        </a>
+
+
+                    {% endif %}
+
                 </div>
 
-                <section class="result-section">
-                    <h3>{% if result.compare_all_modes %}Perbandingan mode 1–4 bit{% else %}Hasil mode {{ result.selected_m }}-bit{% endif %}</h3>
-                    <div class="table-scroll">
-                        <table class="metrics-table">
-                            <thead><tr><th>Mode</th><th>Kapasitas</th><th>Maks pesan</th><th>Payload terenkripsi</th><th>MSE</th><th>PSNR</th><th>Status</th></tr></thead>
-                            <tbody>
-                                {% for mode in result.comparison_results %}
-                                <tr>
-                                    <td>{{ mode.m }}-bit{% if mode.m == result.selected_m %} · dipilih{% endif %}</td>
-                                    <td>{{ mode.capacity }} B</td>
-                                    <td>{{ mode.plaintext_capacity }} B</td>
-                                    <td>{{ mode.encrypted_size }} B</td>
-                                    <td>{% if mode.mse is not none %}{{ mode.mse }}{% else %}—{% endif %}</td>
-                                    <td>{% if mode.psnr is not none %}{{ mode.psnr }} dB{% else %}—{% endif %}</td>
-                                    <td class="{% if mode.status == 'PASS' %}status-pass{% else %}status-fail{% endif %}">{{ mode.status }}{% if mode.error %} · {{ mode.error }}{% endif %}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
+
+
+                <!-- =================================================
+                     MODE COMPARISON
+                ================================================== -->
 
                 <section class="result-section">
-                    <h3>Histogram cover dan stego</h3>
-                    <div style="height: 320px; max-width: 100%;"><canvas id="batch-chart-{{ loop.index0 }}"></canvas></div>
-                    <script type="application/json" id="batch-data-{{ loop.index0 }}">{{ {'cover': result.cover_histogram, 'stego': result.stego_histogram}|tojson }}</script>
+
+
+                    <h3>
+
+                        {% if result.compare_all_modes %}
+
+                            Perbandingan mode 1–4 bit
+
+                        {% else %}
+
+                            Hasil mode
+                            {{ result.selected_m }}-bit
+
+                        {% endif %}
+
+                    </h3>
+
+
+
+                    <div class="table-scroll">
+
+                        <table class="metrics-table">
+
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>
+                                        Mode
+                                    </th>
+
+                                    <th>
+                                        Kapasitas
+                                    </th>
+
+                                    <th>
+                                        Maks pesan
+                                    </th>
+
+                                    <th>
+                                        Payload terenkripsi
+                                    </th>
+
+                                    <th>
+                                        MSE
+                                    </th>
+
+                                    <th>
+                                        PSNR
+                                    </th>
+
+                                    <th>
+                                        Status
+                                    </th>
+
+                                </tr>
+
+                            </thead>
+
+
+
+                            <tbody>
+
+                                {% for mode in result.comparison_results %}
+
+                                <tr>
+
+
+                                    <!-- MODE -->
+
+                                    <td>
+
+                                        {{ mode.m }}-bit
+
+                                        {% if mode.m == result.selected_m %}
+
+                                            · dipilih
+
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <!-- CAPACITY -->
+
+                                    <td>
+
+                                        {{ mode.capacity }}
+                                        B
+
+                                    </td>
+
+
+                                    <!-- MAX MESSAGE -->
+
+                                    <td>
+
+                                        {{ mode.plaintext_capacity }}
+                                        B
+
+                                    </td>
+
+
+                                    <!-- ENCRYPTED PAYLOAD -->
+
+                                    <td>
+
+                                        {{ mode.encrypted_size }}
+                                        B
+
+                                    </td>
+
+
+                                    <!-- MSE -->
+
+                                    <td>
+
+                                        {% if mode.mse is not none %}
+
+                                            {{ mode.mse }}
+
+                                        {% else %}
+
+                                            —
+
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <!-- PSNR -->
+
+                                    <td>
+
+                                        {% if mode.psnr is not none %}
+
+                                            {{ mode.psnr }}
+                                            dB
+
+                                        {% else %}
+
+                                            —
+
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <!-- STATUS -->
+
+                                    <td
+                                        class="
+                                            {% if mode.status == 'PASS' %}
+                                                status-pass
+                                            {% else %}
+                                                status-fail
+                                            {% endif %}
+                                        "
+                                    >
+
+                                        {{ mode.status }}
+
+
+                                        {% if mode.error %}
+
+                                            <br>
+
+                                            · {{ mode.error }}
+
+                                        {% endif %}
+
+                                    </td>
+
+                                </tr>
+
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
                 </section>
+
+
+
+                <!-- =================================================
+                     HISTOGRAM
+                ================================================== -->
+
+                <section class="result-section">
+
+
+                    <h3>
+
+                        Histogram cover dan stego
+
+                    </h3>
+
+
+
+                    <div
+                        style="
+                            height: 320px;
+                            max-width: 100%;
+                        "
+                    >
+
+                        <canvas
+                            id="batch-chart-{{ loop.index0 }}"
+                        ></canvas>
+
+                    </div>
+
+
+
+                    <script
+                        type="application/json"
+                        id="batch-data-{{ loop.index0 }}"
+                    >
+                        {{
+                            {
+                                'cover':
+                                    result.cover_histogram,
+                                'stego':
+                                    result.stego_histogram
+                            }
+                            | tojson
+                        }}
+                    </script>
+
+
+                </section>
+
+
                 {% endif %}
+
             </article>
+
             {% endfor %}
 
+
+
+            <!-- =================================================
+                 FOOTER
+            ================================================== -->
+
             <div class="batch-footer">
-                <a class="btn btn-secondary" href="{{ url_for('encode') }}"><i class="fa-solid fa-arrow-left"></i> Kembali ke encode</a>
-                <a class="btn btn-primary" href="{{ url_for('decode') }}"><i class="fa-solid fa-unlock"></i> Buka halaman decode</a>
+
+
+                <a
+                    class="btn btn-secondary"
+                    href="{{ url_for('encode') }}"
+                >
+
+                    <i
+                        class="fa-solid fa-arrow-left"
+                    ></i>
+
+                    Kembali ke encode
+
+                </a>
+
+
+                <a
+                    class="btn btn-primary"
+                    href="{{ url_for('decode') }}"
+                >
+
+                    <i
+                        class="fa-solid fa-unlock"
+                    ></i>
+
+                    Buka halaman decode
+
+                </a>
+
             </div>
+
         </div>
+
     </main>
 
+
+
+    <!-- =====================================================
+         HISTOGRAM JAVASCRIPT
+    ====================================================== -->
+
     <script>
-        for (const dataElement of document.querySelectorAll('[id^="batch-data-"]')) {
-            const index = dataElement.id.replace("batch-data-", "");
-            const data = JSON.parse(dataElement.textContent);
+
+        for (
+            const dataElement
+            of document.querySelectorAll(
+                '[id^="batch-data-"]'
+            )
+        ) {
+
+
+            const index =
+                dataElement.id.replace(
+                    "batch-data-",
+                    ""
+                );
+
+
+            const data =
+                JSON.parse(
+                    dataElement.textContent
+                );
+
+
             const colors = {
-                red: "rgba(215, 65, 65, .72)",
-                green: "rgba(40, 145, 91, .72)",
-                blue: "rgba(55, 115, 205, .72)"
+
+                red:
+                    "rgba(215, 65, 65, .72)",
+
+                green:
+                    "rgba(40, 145, 91, .72)",
+
+                blue:
+                    "rgba(55, 115, 205, .72)"
+
             };
+
+
             const datasets = [];
-            for (const channel of ["red", "green", "blue"]) {
-                datasets.push({label: `Cover ${channel}`, data: data.cover[channel], borderColor: colors[channel], borderWidth: 1, pointRadius: 0});
-                datasets.push({label: `Stego ${channel}`, data: data.stego[channel], borderColor: colors[channel].replace(".72", ".35"), borderWidth: 1, borderDash: [4, 3], pointRadius: 0});
+
+
+            for (
+                const channel
+                of [
+                    "red",
+                    "green",
+                    "blue"
+                ]
+            ) {
+
+
+                datasets.push({
+
+                    label:
+                        `Cover ${channel}`,
+
+                    data:
+                        data.cover[channel],
+
+                    borderColor:
+                        colors[channel],
+
+                    borderWidth:
+                        1,
+
+                    pointRadius:
+                        0
+
+                });
+
+
+                datasets.push({
+
+                    label:
+                        `Stego ${channel}`,
+
+                    data:
+                        data.stego[channel],
+
+                    borderColor:
+                        colors[channel].replace(
+                            ".72",
+                            ".35"
+                        ),
+
+                    borderWidth:
+                        1,
+
+                    borderDash:
+                        [4, 3],
+
+                    pointRadius:
+                        0
+
+                });
+
             }
-            new Chart(document.getElementById(`batch-chart-${index}`), {
-                type: "line",
-                data: {labels: Array.from({length: 256}, (_, value) => value), datasets},
-                options: {responsive: true, maintainAspectRatio: false, interaction: {mode: "index", intersect: false}, scales: {x: {title: {display: true, text: "Nilai pixel"}}, y: {title: {display: true, text: "Jumlah pixel"}}}}
-            });
+
+
+            new Chart(
+
+                document.getElementById(
+                    `batch-chart-${index}`
+                ),
+
+                {
+
+                    type:
+                        "line",
+
+
+                    data: {
+
+                        labels:
+                            Array.from(
+                                {
+                                    length: 256
+                                },
+                                (_, value) =>
+                                    value
+                            ),
+
+                        datasets:
+                            datasets
+
+                    },
+
+
+                    options: {
+
+                        responsive:
+                            true,
+
+                        maintainAspectRatio:
+                            false,
+
+
+                        interaction: {
+
+                            mode:
+                                "index",
+
+                            intersect:
+                                false
+
+                        },
+
+
+                        scales: {
+
+                            x: {
+
+                                title: {
+
+                                    display:
+                                        true,
+
+                                    text:
+                                        "Nilai pixel"
+
+                                }
+
+                            },
+
+
+                            y: {
+
+                                title: {
+
+                                    display:
+                                        true,
+
+                                    text:
+                                        "Jumlah pixel"
+
+                                }
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            );
+
         }
+
     </script>
+
+
 </body>
+
 </html>
