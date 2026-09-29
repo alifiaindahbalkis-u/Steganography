@@ -12,10 +12,14 @@
     <style>
         .batch-page { min-height: 75vh; padding: 42px 0 72px; background: var(--background); }
         .batch-container { width: min(920px, calc(100% - 36px)); margin: 0 auto; }
+        /* Window box: melebarkan .image-card-main (default 440px) agar muat form batch */
+        .image-card-main.encode-window { width: 100%; max-width: none; min-height: 0; margin: 0 auto; }
+        .encode-window .visual-content { padding: 35px; }
+        .encode-window .section-heading { margin-left: auto; margin-right: auto; }
         .batch-heading { margin-bottom: 24px; }
         .batch-heading h1 { margin: 8px 0; color: var(--dark); font-size: 30px; }
         .batch-heading p { margin: 0; color: var(--muted); }
-        .image-job { margin-bottom: 18px; padding: 22px; border: 1px solid var(--border); border-radius: var(--radius-md); background: white; }
+        .image-job { margin-bottom: 18px; padding: 22px; border: 1px solid var(--border); border-radius: var(--radius-md); background: #f8fafc; }
         .image-job-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
         .image-job-heading h2 { margin: 0; color: var(--dark); font-size: 16px; }
         .batch-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding-top: 17px; }
@@ -33,6 +37,13 @@
         .batch-control { width: 100%; padding: 11px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: white; color: var(--text); font: inherit; }
         .batch-control:focus { outline: 2px solid var(--primary-light); border-color: var(--primary); }
         .batch-field textarea { min-height: 96px; resize: vertical; }
+        .source-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-bottom: 10px; }
+        .source-choice { position: relative; cursor: pointer; margin: 0 !important; }
+        .source-choice input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+        .source-choice span { display: flex; min-height: 42px; align-items: center; justify-content: center; gap: 7px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: white; color: var(--dark); font-size: 13px; font-weight: 700; }
+        .source-choice input:checked + span { border-color: var(--primary); background: var(--primary-light); color: var(--primary); box-shadow: inset 0 0 0 1px var(--primary); }
+        .source-choice input:focus-visible + span { outline: 2px solid var(--primary); outline-offset: 2px; }
+        [data-source-panel][hidden] { display: none; }
         .bit-picker { grid-column: 1 / -1; margin: 0; padding: 0; border: 0; }
         .bit-options { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 9px; }
         .bit-choice { position: relative; cursor: pointer; }
@@ -49,6 +60,7 @@
         .batch-limit { color: var(--muted); font-size: 12px; }
         @media (max-width: 640px) {
             .batch-page { padding-top: 30px; }
+            .encode-window .visual-content { padding: 20px; }
             .batch-heading h1 { font-size: 25px; }
             .image-job { padding: 17px; }
             .batch-fields { grid-template-columns: 1fr; }
@@ -76,10 +88,21 @@
 
     <main class="batch-page">
         <div class="batch-container">
-            <div class="batch-heading">
+          <div class="image-card-main encode-window">
+            <div class="window-header">
+                <div class="window-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <span class="window-title">Encoder Workspace</span>
+            </div>
+
+            <div class="visual-content">
+            <div class="section-heading" style="text-align: center; margin-bottom: 35px;">
                 <span class="section-label">BATCH IMAGE ANALYSIS</span>
-                <h1>Encode beberapa gambar</h1>
-                <p>Setiap gambar memakai pesan, key, dan mode LSB masing-masing.</p>
+                <h2>Encode <span>Beberapa Gambar</span></h2>
+                <p style="margin: 0 auto;">Setiap gambar memakai pesan, key, dan mode LSB masing-masing.</p>
             </div>
 
             {% if error %}<div class="batch-error" role="alert">{{ error }}</div>{% endif %}
@@ -111,9 +134,19 @@
                                 <input class="batch-control" data-name="image" data-id="image" type="file" accept=".png,.bmp,image/png,image/bmp" required>
                                 <span class="file-selection" data-file-name>Pilih gambar</span>
                             </div>
-                            <div class="batch-field full-width">
-                                <label data-label-for="message">Secret message</label>
-                                <textarea class="batch-control" data-name="message" data-id="message" rows="3" required placeholder="Pesan yang disisipkan ke gambar ini"></textarea>
+                            <div class="batch-field full-width" data-message-field>
+                                <label>Secret message</label>
+                                <div class="source-toggle" role="radiogroup" aria-label="Sumber pesan">
+                                    <label class="source-choice"><input data-name="message_source" type="radio" value="manual" checked><span><i class="fa-solid fa-keyboard"></i> Ketik manual</span></label>
+                                    <label class="source-choice"><input data-name="message_source" type="radio" value="file"><span><i class="fa-solid fa-file-lines"></i> Upload file .txt</span></label>
+                                </div>
+                                <div data-source-panel="manual">
+                                    <textarea class="batch-control" data-name="message" data-id="message" rows="3" required placeholder="Pesan yang disisipkan ke gambar ini"></textarea>
+                                </div>
+                                <div data-source-panel="file" hidden>
+                                    <input class="batch-control" data-name="message_file" data-id="message_file" type="file" accept=".txt,text/plain" disabled>
+                                    <span class="file-selection" data-txt-name>Pilih file .txt (UTF-8, maks. 100 KB)</span>
+                                </div>
                             </div>
                             <div class="batch-field full-width">
                                 <label data-label-for="stego_key">Stego key</label>
@@ -143,6 +176,8 @@
                     <button class="btn btn-primary batch-submit" type="submit"><i class="fa-solid fa-lock"></i> Proses semua gambar</button>
                 </div>
             </form>
+            </div>
+          </div>
         </div>
     </main>
 
@@ -185,13 +220,64 @@
         });
 
         jobsContainer.addEventListener("change", (event) => {
-            if (event.target.matches('input[type="file"]')) {
-                const display = event.target.closest(".batch-field").querySelector("[data-file-name]");
-                display.textContent = event.target.files[0]?.name || "Pilih gambar";
+            const target = event.target;
+
+            // Ganti sumber pesan: manual <-> file .txt
+            if (target.matches('input[type="radio"][data-name="message_source"]')) {
+                const field = target.closest("[data-message-field]");
+                const useFile = target.value === "file";
+                const manualPanel = field.querySelector('[data-source-panel="manual"]');
+                const filePanel = field.querySelector('[data-source-panel="file"]');
+                const textarea = manualPanel.querySelector("textarea");
+                const txtInput = filePanel.querySelector('input[type="file"]');
+
+                manualPanel.hidden = useFile;
+                filePanel.hidden = !useFile;
+                // Input yang tidak aktif tidak ikut terkirim & tidak memblokir validasi
+                textarea.disabled = useFile;
+                textarea.required = !useFile;
+                txtInput.disabled = !useFile;
+                txtInput.required = useFile;
+                return;
+            }
+
+            if (target.matches('input[type="file"][data-name="message_file"]')) {
+                const display = target.closest("[data-source-panel]").querySelector("[data-txt-name]");
+                display.textContent = target.files[0]?.name || "Pilih file .txt (UTF-8, maks. 100 KB)";
+                return;
+            }
+
+            if (target.matches('input[type="file"]')) {
+                const display = target.closest(".batch-field").querySelector("[data-file-name]");
+                display.textContent = target.files[0]?.name || "Pilih gambar";
             }
         });
 
         refreshJobs(1);
     </script>
 </body>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <a href="/" class="brand" style="color: white;">
+                    <div class="brand-icon">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <span>Stego<span class="brand-highlight">Lab</span></span>
+                </a>
+                <p>Image steganography application for secure message communication.</p>
+            </div>
+            <div class="footer-links">
+                <a href="/">Home</a>
+                <a href="/encode">Encode</a>
+                <a href="/decode">Decode</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 StegoLab. Academic Project.</p>
+            <span>Informatics</span>
+        </div>
+    </footer>
+
 </html>
