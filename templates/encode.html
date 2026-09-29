@@ -161,6 +161,14 @@
             box-shadow: 0 0 0 3px var(--primary-light);
         }
 
+        .source-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-bottom: 10px; }
+        .source-choice { position: relative; cursor: pointer; margin: 0; }
+        .source-choice input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+        .source-choice span { display: flex; min-height: 42px; align-items: center; justify-content: center; gap: 7px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: white; color: var(--dark); font-size: 13px; font-weight: 700; }
+        .source-choice input:checked + span { border-color: var(--primary); background: var(--primary-light); color: var(--primary); box-shadow: inset 0 0 0 1px var(--primary); }
+        .source-choice input:focus-visible + span { outline: 2px solid var(--primary); outline-offset: 2px; }
+        [hidden] { display: none !important; }
+
         textarea.form-control {
             resize: vertical;
             min-height: 110px;
@@ -634,15 +642,69 @@
 
                             </label>
 
-                            <textarea
-                                name="message"
-                                class="form-control"
-                                rows="4"
-                                placeholder="Enter the message you want to hide..."
-                                required
-                            ></textarea>
+                            <div class="source-toggle" role="radiogroup" aria-label="Sumber pesan">
+                                <label class="source-choice">
+                                    <input type="radio" name="message_source" value="manual" checked>
+                                    <span><i class="fa-solid fa-keyboard"></i> Ketik manual</span>
+                                </label>
+                                <label class="source-choice">
+                                    <input type="radio" name="message_source" value="file">
+                                    <span><i class="fa-solid fa-file-lines"></i> Upload file .txt</span>
+                                </label>
+                            </div>
+
+                            <div id="message-manual-panel">
+                                <textarea
+                                    id="message-textarea"
+                                    name="message"
+                                    class="form-control"
+                                    rows="4"
+                                    placeholder="Enter the message you want to hide..."
+                                    required
+                                ></textarea>
+                            </div>
+
+                            <div id="message-file-panel" hidden>
+                                <input
+                                    id="message-file-input"
+                                    type="file"
+                                    name="message_file"
+                                    class="form-control"
+                                    accept=".txt,text/plain"
+                                    disabled
+                                >
+                                <small style="display:block; margin-top:6px; color: var(--muted);">
+                                    File .txt berencoding UTF-8, maksimal 100 KB.
+                                </small>
+                            </div>
 
                         </div>
+
+                        <script>
+                            (function () {
+                                const radios = document.querySelectorAll('input[name="message_source"]');
+                                const manualPanel = document.getElementById("message-manual-panel");
+                                const filePanel = document.getElementById("message-file-panel");
+                                const textarea = document.getElementById("message-textarea");
+                                const fileInput = document.getElementById("message-file-input");
+
+                                function applySource(useFile) {
+                                    manualPanel.hidden = useFile;
+                                    filePanel.hidden = !useFile;
+                                    // Input yang tidak aktif tidak ikut terkirim & tidak memblokir validasi
+                                    textarea.disabled = useFile;
+                                    textarea.required = !useFile;
+                                    fileInput.disabled = !useFile;
+                                    fileInput.required = useFile;
+                                }
+
+                                radios.forEach(function (radio) {
+                                    radio.addEventListener("change", function () {
+                                        applySource(radio.value === "file" && radio.checked);
+                                    });
+                                });
+                            })();
+                        </script>
 
 
                         <!-- STEGO KEY -->
@@ -1828,77 +1890,26 @@
     ========================================================== -->
 
     <footer class="footer">
-
         <div class="footer-container">
-
             <div class="footer-brand">
-
-                <a
-                    href="/"
-                    class="brand"
-                    style="color: white;"
-                >
-
+                <a href="/" class="brand" style="color: white;">
                     <div class="brand-icon">
-
-                        <i
-                            class="fa-solid fa-shield-halved"
-                        ></i>
-
+                        <i class="fa-solid fa-shield-halved"></i>
                     </div>
-
-                    <span>
-
-                        Stego
-                        <span class="brand-highlight">
-                            Lab
-                        </span>
-
-                    </span>
-
+                    <span>Stego<span class="brand-highlight">Lab</span></span>
                 </a>
-
-
-                <p>
-                    Image steganography application
-                    for secure message communication.
-                </p>
-
+                <p>Image steganography application for secure message communication.</p>
             </div>
-
-
             <div class="footer-links">
-
-                <a href="/">
-                    Home
-                </a>
-
-                <a href="/encode">
-                    Encode
-                </a>
-
-                <a href="/decode">
-                    Decode
-                </a>
-
+                <a href="/">Home</a>
+                <a href="/encode">Encode</a>
+                <a href="/decode">Decode</a>
             </div>
-
         </div>
-
-
         <div class="footer-bottom">
-
-            <p>
-                © 2026 StegoLab.
-                Academic Project.
-            </p>
-
-            <span>
-                Informatics
-            </span>
-
+            <p>© 2026 StegoLab. Academic Project.</p>
+            <span>Informatics</span>
         </div>
-
     </footer>
 
 </div>
