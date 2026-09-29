@@ -36,6 +36,7 @@ from steganography.supabase_store import (
     delete_history_image
 )
 from steganography.batch_encode import encode_batch_item
+from steganography.message_input import read_message_input
 
 from steganography.encryption import (
     encrypt_message,
@@ -500,10 +501,29 @@ def encode():
     )
 
 
-    message = request.form.get(
-        "message",
-        ""
-    )
+    # Pesan bisa diketik manual atau diambil dari file .txt
+    try:
+
+        message = read_message_input(
+            request.form.get(
+                "message_source",
+                "manual"
+            ),
+            request.form.get(
+                "message",
+                ""
+            ),
+            request.files.get(
+                "message_file"
+            )
+        )
+
+    except ValueError as e:
+
+        return render_template(
+            "encode.html",
+            error=str(e)
+        )
 
 
     stego_key = request.form.get(
@@ -1331,10 +1351,7 @@ def encode_batch():
         image_file = request.files.get(
             f"image_{index}"
         )
-        message = request.form.get(
-            f"message_{index}",
-            ""
-        )
+        message = ""
         stego_key = request.form.get(
             f"stego_key_{index}",
             ""
@@ -1361,6 +1378,20 @@ def encode_batch():
 
             if not image_file or not image_file.filename:
                 raise ValueError("Pilih gambar untuk item ini.")
+
+            message = read_message_input(
+                request.form.get(
+                    f"message_source_{index}",
+                    "manual"
+                ),
+                request.form.get(
+                    f"message_{index}",
+                    ""
+                ),
+                request.files.get(
+                    f"message_file_{index}"
+                )
+            )
 
             result = encode_batch_item(
                 image_file,

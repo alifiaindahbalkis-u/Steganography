@@ -15,8 +15,11 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     
     <style>
+        /* .image-card-main di style.css berlebar tetap 440px sehingga max-width
+           saja tidak melebarkan box. width dibuat fleksibel di sini. */
         .form-wrapper {
-            max-width: 650px;
+            width: 100%;
+            max-width: 820px;
             margin: 0 auto;
             transform: none; 
         }
@@ -77,6 +80,14 @@
             line-height: 1.8;
             margin-bottom: 25px;
             white-space: pre-wrap;
+            /* Pecah token panjang (URL, kode, tanpa spasi) agar tidak keluar box */
+            overflow-wrap: anywhere;
+            word-break: break-word;
+            min-width: 0;
+            max-width: 100%;
+            /* Pesan panjang di-scroll di dalam box, halaman tidak ikut memanjang */
+            max-height: 420px;
+            overflow: auto;
         }
     </style>
 </head>
@@ -118,7 +129,7 @@
                     </div>
 
                     <div class="visual-content">
-                        <div class="section-heading" style="text-align: center; margin-bottom: 35px;">
+                        <div class="section-heading" style="text-align: center; margin: 0 auto 35px auto;">
                             <span class="section-label">EXTRACTION PROCESS</span>
                             <h2>Extract Your <span>Data</span></h2>
                             <p style="margin: 0 auto;">Retrieve the hidden message from a stego image.</p>
